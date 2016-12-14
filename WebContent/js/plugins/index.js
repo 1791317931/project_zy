@@ -589,8 +589,12 @@
 				sourceImageSelector : '.source-image',
 				// 预览图片
 				previewImageSelector : '.preview-image',
+				// 上传路径
 				url : '',
+				// 检测图片类型是否合法
 				imageTypeCheckUrl : '',
+				// 默认压缩图片
+				compress : true,
 				// 不能设置为image/*	否则个别电脑上chrome上传文件特别慢
 				accept : 'image/jpg,image/jpeg,image/png,image/bmp',
 				// 默认1M
@@ -658,6 +662,7 @@
 			previewImageSelector = param.previewImageSelector,
 			url = param.url,
 			imageTypeCheckUrl = param.imageTypeCheckUrl,
+			compress = param.compress,
 			accept = param.accept.toLowerCase(),
 			size = param.size,
 			sizeOver = param.sizeOver,
@@ -1242,6 +1247,7 @@
 						left = parseFloat($clipRect.css('border-left-width')) || 0,
 						rectWidth = $clipRect.width(),
 						rectHeight = $clipRect.height(),
+						// 就算预览区域隐藏，依然能得到宽高
 						previewWidth = $previewContainer.width(),
 						previewHeight = $previewContainer.height(),
 						percent = rectWidth / previewWidth;
@@ -1336,6 +1342,9 @@
 						
 						// 有效的图片类型
 						formData.append('accept', accept);
+						// 是否压缩图片
+						formData.append('compress', compress);
+						
 						$.ajax({
 							url : url,
 							data : formData,
@@ -3245,8 +3254,7 @@
 							
 							// success可能会变动
 							if(response.success) {
-								var fileUpload = response.fileUpload;
-								afterUpload($row, $upload, fileUpload);
+								afterUpload($row, $upload, response);
 								!multiple && save($row);
 							}
 						}
