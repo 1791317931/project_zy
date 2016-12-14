@@ -361,7 +361,7 @@
 			<div class="content-body-item" data-type="clip-image">
 				<div class="clip-image-container">
 					<div class="p10">
-						<button class="add-btn btn-primary">添加图片</button>
+						<button class="btn add-btn btn-primary">添加图片</button>
 					</div>
 					<div class="clearfix">
 						<div class="source-container ml10 pull-left">
@@ -372,7 +372,7 @@
 						</div>
 					</div>
 					<div class="center mt15">
-						<button class="btn-primary save-btn">保存</button>
+						<button class="btn btn-primary save-btn">保存</button>
 					</div>
 				</div>
 				<div class="item-tip">
@@ -566,10 +566,10 @@
 						<div class="test8">我今天的心情很不错8我今天的心情很不错8我今天的心情很不错8我今天的心情很不错8我今天的心情很不错8我今天的心情很不错8我今天的心情很不错8</div>
 					</div>
 					<div class="center mt10">
-						<button id="add-head" class="btn-primary">添加头部</button>
-						<button id="add-bottom" class="btn-primary">添加底部</button>
-						<button id="delete-head" class="btn-primary">删除头部</button>
-						<button id="delete-bottom" class="btn-primary">删除底部</button>
+						<button id="add-head" class="btn btn-primary">添加头部</button>
+						<button id="add-bottom" class="btn btn-primary">添加底部</button>
+						<button id="delete-head" class="btn btn-primary">删除头部</button>
+						<button id="delete-bottom" class="btn btn-primary">删除底部</button>
 					</div>
 				</div>
 				<div class="item-tip">
