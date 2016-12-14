@@ -1,0 +1,39 @@
+.switch {
+	width: 80px;
+    height: 30px;
+    background-color: #00BCD4;
+    border-radius: 15px;
+}
+
+.switch .switch-node {
+    width: 26px;
+    height: 26px;
+    background-color: #ff7d00;
+    border-radius: 50%;
+    top: 2px;
+    z-index: 1;
+    transform: translateX(2px);
+    transition: transform .3s linear;
+    transition: transform .3s linear;
+    -webkit-transition: transform .3s linear;
+}
+
+.switch .switch-item {
+	height: 30px;
+    line-height: 30px;
+    color: #fff;
+    font-size: 20px;
+    display: none;
+}
+
+.switch .switch-item[data-checked="Y"] {
+	display: block;
+}
+
+.switch .switch-item[data-index="0"] {
+	right: 10px;
+}
+
+.switch .switch-item[data-index="1"] {
+	left: 10px;
+}

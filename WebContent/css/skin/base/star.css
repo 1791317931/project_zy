@@ -1,0 +1,56 @@
+/* default 5个星星，如果实际中不是5个星星，需要修改.star */
+.star-bar {
+	width: 114px;
+	height: 22px;
+	display: inline-block;
+	position: relative;
+	background: url(../../../imgs/plugins/star.png) repeat-x;
+	cursor: pointer;
+}
+.star-bar input[type="radio"] {
+	position: absolute;
+	clip: rect(0 0 0 0);
+	left: 0;
+}
+.star-bar:hover .star {background-image: none;}
+/* 没有任何状态的.star z-index最大 */
+.star {
+	display: inline-block;
+	width: 18px;
+	height: 20px;
+	cursor: pointer;
+	position: absolute;
+	z-index: 3;
+}
+/* hover时, z-index的值在: .score:checked和.star之间 */
+.star:hover {
+	background-image: url(../../../imgs/plugins/star.png) !important;
+	background-position-y: -20px;
+	z-index: 2;
+}
+/* hover时，后面的.star去掉背景图片 */
+.star:hover ~ .star {
+	background-image: none !important;
+}
+/* 星星之间间隔6px，星星实际宽度是18px */
+.star-1 {left: 0;}
+.star-2 {left: 24px;}
+.star-3 {left: 48px;}
+.star-4 {left: 72px;}
+.star-5 {left: 96px;}
+.star-1:hover {left: 0; width: 18px !important;}
+.star-2:hover {left: 0; width: 42px !important;}
+.star-3:hover {left: 0; width: 66px !important;}
+.star-4:hover {left: 0; width: 90px !important;}
+.star-5:hover {left: 0; width: 114px !important;}
+/* checked时z-index最小 */
+.score:checked + .star {
+	background-image: url(../../../imgs/plugins/star.png);
+	background-position-y: -20px;
+	z-index: 1;
+}
+.score-1:checked + .star {left: 0; width: 18px !important}
+.score-2:checked + .star {left: 0; width: 42px !important;}
+.score-3:checked + .star {left: 0; width: 66px !important;}
+.score-4:checked + .star {left: 0; width: 90px !important;}
+.score-5:checked + .star {left: 0; width: 114px !important;}

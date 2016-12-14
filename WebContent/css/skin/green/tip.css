@@ -1,0 +1,10 @@
+.tip-box {
+	background-color: #43a102;
+	border-color: #43a102;
+}
+.tip-box .triangle-down {
+    border-top-color: #43a102;
+}
+.tip-box .triangle-up {
+    border-bottom-color: #43a102;
+}

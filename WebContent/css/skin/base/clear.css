@@ -1,0 +1,28 @@
+input.required {
+	height: 30px;
+    border-radius: 3px;
+    outline: 0;
+    border: 1px solid #bbb;
+    font-size: 100%;
+    padding: 0 5px;
+    color: #666;
+}
+
+/* ie10+ */
+input.required::-ms-clear {
+	display: none;
+}
+
+input.required + .clear {
+	width: 16px;
+    height: 16px;
+	background: url(../../../imgs/plugins/clear.png) no-repeat;
+	display: none;
+	position: absolute;
+	margin: 8px 0 0 -22px;
+	cursor: pointer;
+}
+
+input.required:valid + .clear {
+	display: inline;
+}

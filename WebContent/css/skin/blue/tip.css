@@ -1,0 +1,10 @@
+.tip-box {
+	background-color: deepskyblue;
+	border-color: deepskyblue;
+}
+.tip-box .triangle-down {
+    border-top-color: deepskyblue;
+}
+.tip-box .triangle-up {
+    border-bottom-color: deepskyblue;
+}

@@ -1,0 +1,11 @@
+.circle-progress-background {
+	stroke: #eee;
+}
+
+.circle-progress-foreground {
+	stroke: deepskyblue;
+}
+
+.progress-percent {
+	color: deepskyblue;
+}

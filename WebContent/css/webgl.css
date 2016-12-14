@@ -1,0 +1,138 @@
+* {
+	font-family: 微软雅黑;
+	padding: 0;
+	margin: 0;	
+}
+
+iframe {
+	border: 0;	
+}
+
+#webgl {
+	border: 4px solid #ff7d00;
+	margin: 10px auto;
+}
+
+.block {
+	display: block !important;
+}
+
+.m5 {margin: 5px;}
+.m10 {margin: 10px;}
+.m15 {margin: 15px;}
+.m20 {margin: 20px;}
+.ml5 {margin-left: 5px;}
+.ml10 {margin-left: 10px;}
+.ml15 {margin-left: 15px;}
+.ml20 {margin-left: 20px;}
+.mt5 {margin-top: 5px;}
+.mt10 {margin-top: 10px;}
+.mt15 {margin-top: 15px;}
+.mt20 {margin-top: 20px;}
+.mr5 {margin-right: 5px;}
+.mr10 {margin-right: 10px;}
+.mr15 {margin-right: 15px;}
+.mr20 {margin-right: 20px;}
+.mb5 {margin-bottom: 5px;}
+.mb10 {margin-bottom: 10px;}
+.mb15 {margin-bottom: 15px;}
+.mb20 {margin-bottom: 20px;}
+.p5 {padding: 5px;}
+.p10 {padding: 10px;}
+.p15 {padding: 15px;}
+.p20 {padding: 20px;}
+.pl5 {padding-left: 5px;}
+.pl10 {padding-left: 10px;}
+.pl15 {padding-left: 15px;}
+.pl20 {padding-left: 20px;}
+.pt5 {padding-top: 5px;}
+.pt10 {padding-top: 10px;}
+.pt15 {padding-top: 15px;}
+.pt20 {padding-top: 20px;}
+.pr5 {padding-right: 5px;}
+.pr10 {padding-right: 10px;}
+.pr15 {padding-right: 15px;}
+.pr20 {padding-right: 20px;}
+.pb5 {padding-bottom: 5px;}
+.pb10 {padding-bottom: 10px;}
+.pb15 {padding-bottom: 15px;}
+.pb20 {padding-bottom: 20px;}
+.pull-left {float: left;}
+.pull-right {float: right;}
+.text-left {text-align: left;}
+.text-center {text-align: center;}
+.text-right {text-align: right;}
+.active {color: #6565c7;}
+.pointer {cursor: pointer;}
+.red {color: red;}
+.bg-gray {background-color: #ddd;}
+
+#menu {
+	width: 200px;
+	border: 3px solid #ccc;
+	min-height: 200px;
+	max-height: calc(100% - 10px);
+	overflow: auto;
+	color: #b8c0c3;
+}
+
+#menu .item {
+	width: 175px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+#menu .item:hover {
+	color: red;
+}
+
+#content-body {
+	width: 1000px;
+	height: 800px;
+	box-shadow: 1px 0px 10px 0px deepskyblue;
+	margin-left: calc((100% - 200px - 10px - 3px * 2 - 1000px - 3px * 2) / 2);
+}
+
+pre {
+	line-height: 25px;
+	margin-top: 5px;
+	padding-top: 5px;
+	margin-bottom: 10px;
+	border: groove;
+}
+
+.break {
+	word-break: break-all;
+	line-height: 25px;
+}
+.ti1 {text-indent: 33px;}
+.ti2 {text-indent: 60px;}
+.ti3 {text-indent: 82px;}
+.lh25 {line-height: 25px;}
+.btn {
+	padding: 5px 7px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 0 5px;
+    background-color: white;
+    border: 1px solid #ccc;
+}
+.btn:hover {background-color: #09f;}
+.btn-primary {background-color: blue;}
+
+.img-group img {
+	width: 200px;
+	height: 200px;
+	margin-right: 5px;
+	border: 1px solid #ccc;
+	cursor: pointer;
+}
+
+img.active {
+	border: 1px solid #ff6a00;
+}
+
+.img-group img:hover {
+	border: 1px solid #ff7d00;
+}

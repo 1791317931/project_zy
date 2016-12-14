@@ -1,0 +1,3272 @@
+2016-6-2	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+window.open在ajax之前执行，返回的对象在success中设置location。
+代码:
+var child = window.open();
+$.ajax(
+	url : '...',
+	success : function() {
+		// 这样不会被拦截
+		child.location = 'xxxxxxxxxxxxx';
+	}
+);
+
+2016-6-5	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+canvas作图，canvas的宽度和高度要写在属性里面，而不是style里面，否则会出现意想不到的现象
+<div id="percent-container" style="position: relative; text-align: center; line-height: 75px; width: 75px; height: 75px;">
+	<span style="color: deepskyblue; font-weight: 700;"></span>
+	<canvas width="75px" height="75px" style="position: absolute; left: 0; top: 0;"></canvas>
+</div>
+
+(function() {
+	function getCanvas(selector) {
+		return $(selector).find('canvas')[0].getContext('2d');
+	}
+	
+	// 画圆
+	function animateDrawArc(selector, param) {
+		var option = {
+			value : 50,
+			// 值后缀
+			suffix : '',
+			strokeStyle : 'deepskyblue',
+			// 默认线条宽度
+			lineWidth : 10,
+			// 默认半径50px
+			radius : 50,
+			// 从正上方开始绘画--270°
+			reg : 1.5 * Math.PI,
+			// 默认顺时针
+			counterclockwise : false,
+			// 每次绘画的间隔时间（毫秒）
+			intervalMilliseconds : 10,
+			// 正圆strokeStyle颜色
+			fullArcStrokeStyle : '#ddd'
+		};
+		option = $.extend(true, option, param);
+		
+		if(option.value > 100) {
+			option.value = 100;
+		}
+		var $container = $(selector);
+		canvas = getCanvas(selector),
+		$span = $container.find('span'),
+		lineWidth = option.lineWidth,
+		r = option.radius
+		x = option.x,
+		y = option.y,
+		value = Math.floor(option.value),
+		diff = option.value - value,
+		suffix = option.suffix,
+		i = 0,
+		fullArcStrokeStyle = option.fullArcStrokeStyle,
+		intervalMilliseconds = option.intervalMilliseconds,
+		reg = option.reg,
+		PI = Math.PI,
+		counterclockwise = option.counterclockwise;
+		// ----------------先画正圆-------------------------
+		canvas.beginPath();
+		canvas.strokeStyle = fullArcStrokeStyle;
+		canvas.lineWidth = lineWidth;
+		canvas.arc(x, y, r, 0, 2 * Math.PI);
+		canvas.stroke();
+		canvas.closePath();
+		// ----------------先画正圆-------------------------
+		// ----------------动画做圆-------------------------
+		canvas.beginPath();
+		canvas.strokeStyle = option.strokeStyle;
+		setTimeout(function() {
+			if(i < value) {
+				// 每次增加1%，断断续续画图会使圆圈模糊
+				canvas.arc(x, y, r, reg, (reg += 0.01 * 2 * PI), counterclockwise);
+				i++;
+				$span.html(i + suffix);
+				canvas.stroke();
+				setTimeout(arguments.callee, intervalMilliseconds);
+			} else if (i == value && diff) {
+				// 如果有小数位，需要补全
+				setTimeout(function() {
+					canvas.arc(x, y, r, reg, (reg += 0.01 * new Number(diff).toFixed(1) * 2 * PI), counterclockwise);
+					$span.html(new Number(option.value).toFixed(1) + suffix);
+					canvas.stroke();
+				}, intervalMilliseconds);
+			}
+		}, intervalMilliseconds);
+	}
+	
+	window.AnimateCanvas = function() {
+		this.draw = animateDrawArc;
+	};
+	
+})();
+
+new AnimateCanvas().draw('#percent-container', {
+	value : 48,
+	x : 38,
+	y : 38,
+	lineWidth : 5,
+	radius : 32,
+	suffix : '%'
+});
+
+2016-6-7	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+进度条-动画
+css:
+@-webkit-keyframes webkitProgressBar {
+	0% {
+		width: 0;
+	}
+	25% {
+		width: 25%;
+	}
+	50% {
+		width: 50%;
+	}
+	75% {
+		width: 75%;
+	}
+	100% {
+		width: 100%;
+	}
+}
+
+@-moz-keyframes mozProgressBar {
+	0% {
+		width: 0;
+	}
+	25% {
+		width: 25%;
+	}
+	50% {
+		width: 50%;
+	}
+	75% {
+		width: 75%;
+	}
+	100% {
+		width: 100%;
+	}
+}
+
+@-ms-keyframes msProgressBar {
+	0% {
+		width: 0;
+	}
+	25% {
+		width: 25%;
+	}
+	50% {
+		width: 50%;
+	}
+	75% {
+		width: 75%;
+	}
+	100% {
+		width: 100%;
+	}
+}
+
+@-webkit-keyframes webkitProgressPoint {
+	0% {
+		width: 0;
+	}
+	100% {
+		width: 100%;
+	}
+}
+
+@-moz-keyframes mozProgressPoint {
+	0% {
+		width: 0;
+	}
+	100% {
+		width: 100%;
+	}
+}
+
+@-ms-keyframes msProgressPoint {
+	0% {
+		width: 0;
+	}
+	100% {
+		width: 100%;
+	}
+}
+
+#progress-bar {
+	position: relative;
+	height: 30px;
+	border: 1px solid red;	
+}
+
+#progress-bar .progress {
+	position: absolute;
+	width: 500px;
+	height: 10px;
+	top: 50%;
+	margin: -5px 0 0 10px;
+	background-color: #ddd;
+	border-radius: 5px;
+}
+
+#progress-bar .progress span {
+	height: 10px;
+	display: inline-block;
+	background-color: green;
+	border-radius: 5px;
+	-webkit-animation: webkitProgressPoint 5s linear;
+	-moz-animation: mozProgressPoint 5s linear;
+	-ms-animation: msProgressPoint 5s linear;
+	-webkit-animation-fill-mode: forwards;
+	-moz-animation-fill-mode: forwards;
+	-ms-animation-fill-mode: forwards;
+}
+
+#progress-bar>p {
+	position: absolute;
+	height: 20px;
+	width: 20px;
+	border-radius: 50%;
+	background-color: #ccc;
+	display: inline-block;
+	margin-top: 5px;
+}
+
+#progress-bar>p.first {
+	background-color: green;
+}
+
+#progress-bar>p.second {
+	margin-left: 125px;
+}
+
+#progress-bar>p.third {
+	margin-left: 250px;	
+}
+
+#progress-bar>p.fourth {
+	margin-left: 375px;
+}
+
+#progress-bar>p.fifth {
+	margin-left: 490px;
+}
+
+#progress-bar>p span {
+	height: 20px;
+	border-radius: 50%;
+	background-color: green;
+	display: inline-block;
+}
+
+#progress-bar>p.second span {
+	-webkit-animation: webkitProgressPoint 0.2s linear 1.15s 1;
+	-moz-animation: mozProgressPoint 0.2s linear 1.15s 1;
+	-ms-animation: msProgressPoint 0.2s linear 1.15s 1;
+	-webkit-animation-fill-mode: forwards;
+	-moz-animation-fill-mode: forwards;
+	-ms-animation-fill-mode: forwards;
+}
+
+#progress-bar>p.third span {
+	-webkit-animation: webkitProgressPoint 0.2s linear 2.40s 1;
+	-moz-animation: mozProgressPoint 0.2s linear 2.40s 1;
+	-ms-animation: msProgressPoint 0.2s linear 2.40s 1;
+	-webkit-animation-fill-mode: forwards;
+	-moz-animation-fill-mode: forwards;
+	-ms-animation-fill-mode: forwards;
+}
+
+#progress-bar>p.fourth span {
+	-webkit-animation: webkitProgressPoint 0.2s linear 3.65s 1;
+	-moz-animation: mozProgressPoint 0.2s linear 3.65s 1;
+	-ms-animation: msProgressPoint 0.2s linear 3.65s 1;
+	-webkit-animation-fill-mode: forwards;
+	-moz-animation-fill-mode: forwards;
+	-ms-animation-fill-mode: forwards;
+}
+
+#progress-bar>p.fifth span {
+	-webkit-animation: webkitProgressPoint 0.2s linear 4.90s 1;
+	-moz-animation: mozProgressPoint 0.2s linear 4.90s 1;
+	-ms-animation: msProgressPoint 0.2s linear 4.90s 1;
+	-webkit-animation-fill-mode: forwards;
+	-moz-animation-fill-mode: forwards;
+	-ms-animation-fill-mode: forwards;
+}
+
+html:
+<div id="progress-bar">
+	<div class="progress">
+		<span></span>
+	</div>
+	<p class="first">
+		<span></span>
+	</p>
+	<p class="second">
+		<span></span>
+	</p>
+	<p class="third">
+		<span></span>
+	</p>
+	<p class="fourth">
+		<span></span>
+	</p>
+	<p class="fifth">
+		<span></span>
+	</p>
+</div>
+
+2016-6-24	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+clearfix清除浮动
+在容器最后添加一个.clearfix的dom
+.clearfix {
+	height: 0px;
+	visibility: hidden;
+	clear: both;
+}
+<div>
+	<div class="clearfix"></div>
+</div>
+
+2016-6-24	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+rotateX、rotateY、rotateZ
+面向右手手心--rotateX(90deg):沿X轴顺时针90deg--rotateY(90deg):沿Y轴逆时针90deg--rotateZ(90deg):沿Z轴逆时针90deg
+transform:rotate与translate的先后顺序会影响dom元素的位置。
+transform: rotateY(-90deg) translateZ(100px)-->先围绕Y轴顺时针90°，然后沿该dom的Z轴正向平移100px。
+
+2016-6-24	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+transition过渡--动画效果
+操作动画属性时，dom属性会立即从当前值修改为目标值！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+给dom添加transition: property1, property2, ... || all 1s ease;
+但是这种动画只能是一次性的，并且只能是从初始状态正向到最终状态，不可能像keyframes那样可以反反复复改变dom的状态。
+兼容性：不兼容ie
+兼容: webkit moz
+transition: all 1s ease;
+-webkit-transition: all 1s ease;
+
+<div class="animation-container">
+	<div class="ltr-container mr5">
+		<div class="ltr preserv-3d">
+			<div class="rect-f rect">
+				<div class="sub-container">
+					<span class="top">top-f</span>
+					<span class="bottom">bottom-f</span>
+				</div>
+			</div>
+			<div class="rect-b rect">
+				<div class="sub-container">
+					<span class="top">top-b</span>
+					<span class="bottom">bottom-b</span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="ttb-container mr5">
+		<!-- 必须在容器上面添加transform-style: preserve-3d; --!>
+		<div class="ttb preserv-3d">
+			<div class="rect-f rect">
+				<div class="sub-container">
+					<span class="top">top-f</span>
+					<span class="bottom">bottom-f</span>
+				</div>
+			</div>
+			<div class="rect-b rect">
+				<div class="sub-container">
+					<span class="top">top-b</span>
+					<span class="bottom">bottom-b</span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="clearfix"></div>
+</div>
+
+.mr5 {
+	margin-right: 5px;
+}
+
+.preserv-3d {
+	transform-style: preserve-3d;
+	-webkit-transform-style: preserve-3d;
+	-moz-transform-style: preserve-3d;
+	-ms-transform-style: preserve-3d;
+}
+
+.animation-container {
+	width: 1000px;
+	margin: 20px auto 0 auto;
+}
+
+.ltr-container {
+	perspective: 500px;
+	-webkit-perspective: 500px;
+	-moz-perspective: 500px;
+	-ms-perspective: 500px;
+	position: relative;
+	width: 326px;
+	height: 148px;
+	float: left;
+}
+
+.ltr {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	transform: translateZ(-163px);
+	-webkit-transform: translateZ(-163px);
+	-moz-transform: translateZ(-163px);
+	-ms-transform: translateZ(-163px);
+	transition: all 0.4s ease;
+	-webkit-transition: all 0.4s ease;
+	-moz-transition: all 0.4s ease;
+	-ms-transition: all 0.4s ease;
+}
+
+.ltr-container:hover .ltr {
+	transform: translateZ(-163px)  rotateY(90deg);
+	-webkit-transform: translateZ(-163px) rotateY(90deg);
+	-moz-transform: translateZ(-163px) rotateY(90deg);
+}
+
+.ltr-container:hover .rect-b .sub-container span {
+	left: 0px !important;
+}
+
+.ltr-container:hover .rect-f .sub-container .top {
+	left: -50px !important;
+}
+
+.ltr-container:hover .rect-f .sub-container .bottom {
+	left: 50px !important;
+}
+
+.rect {
+	top: 0;
+	left: 0;
+	background-color: #f080f0;
+	width: 100%;
+	height: 100%;
+	position: absolute;
+}
+
+.rect .sub-container {
+	margin-top: 74px;
+	top: -30px;
+	position: relative;
+	height: 60px;
+	line-height: 30px;
+	text-align: center;
+}
+
+.ltr .rect .sub-container span {
+	display: block;
+	position: relative;
+}
+
+.ltr .rect-b .sub-container .top {
+	left: -50px;
+	transition: all 1s ease;
+	-webkit-transition: all 1s ease;
+	-moz-transition: all 1s ease;
+}
+
+.ltr .rect-b .sub-container .bottom {
+	left: 50px;
+	transition: all 1s ease;
+	-webkit-transition: all 1s ease;
+	-moz-transition: all 1s ease;
+}
+
+.ltr .rect-f .sub-container span {
+	left: 0;
+	transition: all 1s ease;
+	-webkit-transition: all 1s ease;
+	-moz-transition: all 1s ease;
+}
+
+.ltr .rect-b {
+	transform: rotateY(-90deg) translateZ(163px);
+	-webkit-transform: rotateY(-90deg) translateZ(163px);
+	-moz-transform: rotateY(-90deg) translateZ(163px);
+}
+
+.ltr .rect-f {
+	transform: translateZ(163px);
+	-webkit-transform: translateZ(163px);
+	-moz-transform: translateZ(163px);
+}
+
+.ttb-container {
+	width: 326px;
+	height: 148px;
+	position: relative;
+	float: left;
+	perspective: 500px;
+	-webkit-perspective: 500px;
+	-moz-perspective: 500px;
+	-ms-perspective: 500px;
+}
+
+.ttb-container:hover .ttb {
+	transform: translateZ(-74px) rotateX(-90deg);
+	-webkit-transform: translateZ(-74px) rotateX(-90deg);
+	-moz-transform: translateZ(-74px) rotateX(-90deg);
+	-ms-transform: translateZ(-74px) rotateX(-90deg);
+}
+
+.ttb-container:hover .ttb .rect-f .top {
+	top: -30px;
+}
+
+.ttb-container:hover .ttb .rect-f .bottom {
+	top: 30px;
+}
+
+.ttb-container:hover .ttb .rect-b span {
+	top: 0px;
+}
+
+.ttb {
+	width: 100%;
+	height: 100%;
+	left: 0;
+	top: 0;
+	transform: translateZ(-74px);
+	-webkit-transform: translateZ(-74px);
+	-moz-transform: translateZ(-74px);
+	-ms-transform: translateZ(-74px);
+	transition: all 0.4s ease;
+	-webkit-transition: all 0.4s ease;
+	-moz-transition: all 0.4s ease;
+	-ms-transition: all 0.4s ease;
+}
+
+.ttb-container .rect {
+	background-color: #ff7d00;
+}
+
+.ttb .rect .sub-container span {
+	display: block;
+	position: relative;
+}
+
+.ttb .rect-f {
+	transform: translateZ(74px);
+	-webkit-transform: translateZ(74px);
+	-moz-transform: translateZ(74px);
+	-ms-transform: translateZ(74px);
+}
+
+.ttb .rect-b {
+	transform: rotateX(90deg) translateZ(74px);
+	-webkit-transform: rotateX(90deg) translateZ(74px);
+	-moz-transform: rotateX(90deg) translateZ(74px);
+	-ms-transform: rotateX(90deg) translateZ(74px);
+}
+
+.ttb .rect-f span {
+	top: 0px;
+	position: relative;
+	transition: all 0.8s ease;
+	-webkit-transition: all 0.8s ease;
+	-moz-transition: all 0.8s ease;
+	-ms-transition: all 0.8s ease;
+}
+
+.ttb .rect-b .top {
+	top: -30px;
+	position: relative;
+	transition: all 0.8s ease;
+	-webkit-transition: all 0.8s ease;
+	-moz-transition: all 0.8s ease;
+	-ms-transition: all 0.8s ease;
+}
+
+.ttb .rect-b .bottom {
+	top: 30px;
+	position: relative;
+	transition: all 0.8s ease;
+	-webkit-transition: all 0.8s ease;
+	-moz-transition: all 0.8s ease;
+	-ms-transition: all 0.8s ease;
+}
+
+2016-6-26	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+js new Date('...').getTime()
+目前只有chrome支持YY-MM-dd，而IE等不支持，需要将'-'替换为'/'
+new Date('2016-6-26 7:22:33'.replace(/-/g, '/')).getTime()
+
+2016-6-29	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+多米诺骨牌
+function initDoninoState() {
+	this.init = function() {
+		$('.donino-stage .cuboid').each(function(i, item) {
+			var $rect = $(item);
+			/*$rect.removeClass('animation-donino-state-1 animation-donino-state-3').css({
+				transform : 'rotateY(-90deg) translateX(-300px) translateZ(10px)',
+				'-webkit-transform' : 'rotateY(-90deg) translateX(-300px) translateZ(10px)',
+				'-moz-transform' : 'rotateY(-90deg) translateX(-300px) translateZ(10px)'
+			});*/
+			$rect.removeClass('animation-donino-state-1 animation-donino-state-2 animation-donino-state-3').css({
+				transform : 'rotateY(-90deg) translateX(-300px) translateZ(10px) rotateX(0deg)',
+				'-webkit-transform' : 'rotateY(-90deg) translateX(-300px) translateZ(10px) rotateX(0deg)',
+				'-moz-transform' : 'rotateY(-90deg) translateX(-300px) translateZ(10px) rotateX(0deg)'
+			});
+		});
+	}
+}
+
+var donino = new initDoninoState();
+donino.init();
+
+$('.donino-container .donino-stage').bind('click', function() {
+	var $rects = $('.donino-stage .cuboid'),
+	i = 0,
+	length = $rects.length;
+	(function() {
+		var callee = arguments.callee;
+		if(i >= length) {
+			return false;
+		}
+		animationEvent && $rects[i].addEventListener(animationEvent.end, function() {
+			(function(index) {
+				if(index == length - 1) {
+					return false;
+				}
+				/*$($rects[index]).removeClass('animation-donino-state-1').css({
+					'transform' : 'rotateY(-90deg) translateX(-300px) translateZ(10px) rotateX(' + (88 - (index + 1) * 1.3) + 'deg)',
+					'webkit-transform' : 'rotateY(-90deg) translateX(-300px) translateZ(10px) rotateX(' + (88 - (index + 1) * 1.3) + 'deg)',
+					'moz-transform' : 'rotateY(-90deg) translateX(-300px) translateZ(10px) rotateX(' + (88 - (index + 1) * 1.3) + 'deg)',
+				});*/
+				$($rects[index]).css({
+					'transform' : 'rotateY(-90deg) translateX(-300px) translateZ(10px) rotateX(20deg)',
+					'-webkit-transform' : 'rotateY(-90deg) translateX(-300px) translateZ(10px) rotateX(20deg)',
+					'-moz-transform' : 'rotateY(-90deg) translateX(-300px) translateZ(10px) rotateX(20deg)'
+				}).addClass('animation-donino-state-2');
+			})(i);
+			i++;
+			callee();
+		});
+		if(i < length - 1) {
+			$($rects[i]).addClass('animation-donino-state-1');
+		} else {
+			// 最后一个木板直接加速倒地
+			$($rects[i]).addClass('animation-donino-state-3');
+		}
+	})();
+}).hover($.noop, donino.init);
+
+@-webkit-keyframes donino-state-1 {
+	0 {
+		transform: rotateY(-90deg) translateX(-300px) translateZ(10px) rotateX(0);
+	}
+	100% {
+		transform: rotateY(-90deg) translateX(-300px) translateZ(10px) rotateX(20deg);
+	}
+}
+
+@-moz-keyframes donino-state-1 {
+	0 {
+		transform: rotateY(-90deg) translateX(-300px) translateZ(10px) rotateX(0);
+	}
+	100% {
+		transform: rotateY(-90deg) translateX(-300px) translateZ(10px) rotateX(20deg);
+	}
+}
+
+@-webkit-keyframes donino-state-2 {
+	0 {
+		transform: rotateY(-90deg) translateX(-300px) translateZ(10px) rotateX(20deg);
+	}
+	100% {
+		transform: rotateY(-90deg) translateX(-300px) translateZ(10px) rotateX(77deg);
+	}
+}
+
+@-moz-keyframes donino-state-2 {
+	0 {
+		transform: rotateY(-90deg) translateX(-300px) translateZ(10px) rotateX(20deg);
+	}
+	100% {
+		transform: rotateY(-90deg) translateX(-300px) translateZ(10px) rotateX(77deg);
+	}
+}
+
+@-webkit-keyframes donino-state-3 {
+	0 {
+		transform: rotateY(-90deg) translateX(-300px) translateZ(10px) rotateX(0deg);
+	}
+	100% {
+		transform: rotateY(-90deg) translateX(-300px) translateZ(10px) rotateX(90deg);
+	}
+}
+
+@-moz-keyframes donino-state-3 {
+	0 {
+		transform: rotateY(-90deg) translateX(-300px) translateZ(10px) rotateX(0deg);
+	}
+	100% {
+		transform: rotateY(-90deg) translateX(-300px) translateZ(10px) rotateX(90deg);
+	}
+}
+
+.animation-donino-state-1 {
+	animation: donino-state-1 0.3s ease-in 1 forwards;
+	-webkit-animation: donino-state-1 0.3s ease-in 1 forwards;
+	-moz-animation: donino-state-1 0.3s ease-in 1 forwards;
+}
+
+.animation-donino-state-2 {
+	animation: donino-state-2 1.5s ease-in-out 1 forwards;
+	-webkit-animation: donino-state-2 1.5s ease-in-out 1 forwards;
+	-moz-animation: donino-state-2 1.5s ease-in-out 1 forwards;
+}
+
+.animation-donino-state-3 {
+	animation: donino-state-3 0.7s ease-in 1 forwards;
+	-webkit-animation: donino-state-3 0.7s ease-in 1 forwards;
+	-moz-animation: donino-state-3 0.7s ease-in 1 forwards;
+}
+
+.donino-container .donino-stage {
+	width: 1200px;
+	height: 300px;
+	border: 1px solid red;
+	margin: 0 auto;
+	perspective: 800px;
+	-webkit-perspective: 800px;
+	-moz-perspective: 800px;
+	perspective-origin: left center;
+	-webkit-perspective-origin: left center;
+	-moz-perspective-origin: left center;
+}
+
+.donino-stage .cuboid {
+	width: 20px;
+	height: 300px;
+	float: left;
+	margin-left: 100px;
+	transition: all 1s linear;
+	-webkit-transition: all 1s linear;
+	-moz-transition: all 1s linear;
+	transform: rotateY(-90deg) translateX(-300px) translateZ(10px);
+	-webkit-transform: rotateY(-90deg) translateX(-300px) translateZ(10px);
+	-moz-transform: rotateY(-90deg) translateX(-300px) translateZ(10px);
+	transform-origin: bottom center;
+	-webkit-transform-origin: bottom center;
+	-moz-transform-origin: bottom center;
+}
+
+.donino-stage .cuboid .donino-rect {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+}
+
+.donino-stage .cuboid .face-rect {
+	background-color: red;
+}
+
+.donino-stage .cuboid .back-rect {
+	background-color: blue;
+	transform: rotateY(-180deg) translateZ(20px);
+	-webkit-transform: rotateY(-180deg) translateZ(20px);
+	-moz-transform: rotateY(-180deg) translateZ(20px);
+}
+
+.donino-stage .cuboid .left-rect {
+	background-color: deepskyblue;
+	transform: rotateY(-90deg) translateZ(10px) translateX(-10px);
+	-webkit-transform: rotateY(-90deg) translateZ(10px) translateX(-10px);
+}
+
+.donino-stage .cuboid .right-rect {
+	background-color: #ff7d00;
+	transform: rotateY(-270deg) translateZ(10px) translateX(10px);
+	-webkit-transform: rotateY(-270deg) translateZ(10px) translateX(10px);
+}
+
+<div class="donino-container">
+	<div class="donino-stage">
+		<div class="cuboid preserve-3d">
+			<div class="face-rect donino-rect"></div>
+			<div class="back-rect donino-rect"></div>
+			<div class="left-rect donino-rect"></div>
+			<div class="right-rect donino-rect"></div>
+		</div>
+		<div class="cuboid preserve-3d">
+			<div class="face-rect donino-rect"></div>
+			<div class="back-rect donino-rect"></div>
+			<div class="left-rect donino-rect"></div>
+			<div class="right-rect donino-rect"></div>
+		</div>
+		<div class="cuboid preserve-3d">
+			<div class="face-rect donino-rect"></div>
+			<div class="back-rect donino-rect"></div>
+			<div class="left-rect donino-rect"></div>
+			<div class="right-rect donino-rect"></div>
+		</div>
+		<div class="cuboid preserve-3d">
+			<div class="face-rect donino-rect"></div>
+			<div class="back-rect donino-rect"></div>
+			<div class="left-rect donino-rect"></div>
+			<div class="right-rect donino-rect"></div>
+		</div>
+		<div class="cuboid preserve-3d">
+			<div class="face-rect donino-rect"></div>
+			<div class="back-rect donino-rect"></div>
+			<div class="left-rect donino-rect"></div>
+			<div class="right-rect donino-rect"></div>
+		</div>
+		<div class="cuboid preserve-3d">
+			<div class="face-rect donino-rect"></div>
+			<div class="back-rect donino-rect"></div>
+			<div class="left-rect donino-rect"></div>
+			<div class="right-rect donino-rect"></div>
+		</div>
+		<div class="cuboid preserve-3d">
+			<div class="face-rect donino-rect"></div>
+			<div class="back-rect donino-rect"></div>
+			<div class="left-rect donino-rect"></div>
+			<div class="right-rect donino-rect"></div>
+		</div>
+		<div class="cuboid preserve-3d">
+			<div class="face-rect donino-rect"></div>
+			<div class="back-rect donino-rect"></div>
+			<div class="left-rect donino-rect"></div>
+			<div class="right-rect donino-rect"></div>
+		</div>
+		<div class="cuboid preserve-3d">
+			<div class="face-rect donino-rect"></div>
+			<div class="back-rect donino-rect"></div>
+			<div class="left-rect donino-rect"></div>
+			<div class="right-rect donino-rect"></div>
+		</div>
+		<div class="cuboid preserve-3d">
+			<div class="face-rect donino-rect"></div>
+			<div class="back-rect donino-rect"></div>
+			<div class="left-rect donino-rect"></div>
+			<div class="right-rect donino-rect"></div>
+		</div>
+	</div>
+	<div class="clearfix"></div>
+</div>
+
+2016-6-29	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+jquery禁用右键
+$(document).bind('contextmenu', function() {
+	return false;
+});
+
+2016-6-30	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+多个平面container堆叠时在ff浏览器中后方平面看不到3d效果，chrome没有这个问题。
+在chrome中不需要对.gallery-top和.gallery-bottom设置rotateX
+<div class="gallery-container">
+	<div class="gallery-stage">
+		<div class="gallery preserve-3d">
+			<div class="face-door door">
+				<div class="wall"></div>
+				<div class="rect-door">
+					<div class="pole-container">
+						<div class="face-pole pole"></div>
+						<div class="back-pole pole"></div>
+						<div class="left-pole pole"></div>
+						<div class="right-pole pole"></div>
+					</div>
+				</div>
+			</div>
+			<div class="back-door door"></div>
+			<div class="left-door door"></div>
+			<div class="right-door door"></div>
+			<div class="gallery-top">
+				<div class="top-door door"></div>
+			</div>
+			<div class="gallery-bottom">
+				<div class="bottom-door door"></div>
+			</div>
+		</div>
+	</div>
+</div>
+
+.gallery-container .gallery-stage .gallery .gallery-top {
+	width: 1100px;
+	height: 1100px;
+	position: absolute;
+	/* 旋转父平面container!!!!!!!!!!!!!!!!!!!! */
+	transform: rotateX(-90deg) translateY(550px) translateZ(-550px);
+	-webkit-transform: rotateX(-90deg) translateY(550px) translateZ(-550px);
+	-moz-transform: rotateX(-90deg) translateY(550px) translateZ(-550px);
+}
+
+.gallery-container .gallery-stage .gallery .gallery-bottom {
+	width: 1100px;
+	height: 1100px;
+	position: absolute;
+	/* 旋转父平面container!!!!!!!!!!!!!!!!!!!! */
+	transform: rotateX(90deg) translateY(-550px) translateZ(50px);
+	-webkit-transform: rotateX(90deg) translateY(-550px) translateZ(50px);
+	-moz-transform: rotateX(90deg) translateY(-550px) translateZ(50px);
+}
+
+.gallery-container .gallery-stage .back-door {
+	background: url('../imgs/test-1/8.jpg') no-repeat center rgba(255, 100, 0, 0.5);
+	transform: translateZ(-1096px);
+	-webkit-transform: translateZ(-1096px);
+	-moz-transform: translateZ(-1096px);
+}
+
+.gallery-container .gallery-stage .left-door {
+	background: url('../imgs/test-1/2.jpg') no-repeat center rgba(255, 125, 0, 0.5);
+	transform: rotateY(90deg) translateX(550px) translateZ(-550px);
+	-webkit-transform: rotateY(90deg) translateX(550px) translateZ(-550px);
+	-moz-transform: rotateY(90deg) translateX(550px) translateZ(-550px);
+}
+
+.gallery-container .gallery-stage .right-door {
+	background: url('../imgs/test-1/3.jpg') no-repeat center rgba(100, 100, 0, 0.5);
+	transform: rotateY(-90deg) translateX(-550px) translateZ(-550px);
+	-webkit-transform: rotateY(-90deg) translateX(-550px) translateZ(-550px);
+	-moz-transform: rotateY(-90deg) translateX(-550px) translateZ(-550px);
+}
+
+.gallery-container .gallery-stage .top-door {
+	background: url('../imgs/test-1/4.jpg') no-repeat center rgba(100, 100, 100, 0.5);
+}
+
+.gallery-container .gallery-stage .bottom-door {
+	background: url('../imgs/test-1/5.jpg') no-repeat center deepskyblue;
+}
+
+2016-6-30	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+画廊
+<div class="gallery-container">
+	<div class="gallery-stage">
+		<div class="gallery preserve-3d">
+			<div class="face-door door">
+				<div class="wall"></div>
+				<div class="rect-door">
+					<div class="pole"></div>
+				</div>
+			</div>
+			<div class="back-door door"></div>
+			<div class="left-door door"></div>
+			<div class="right-door door"></div>
+			<div class="gallery-top">
+				<div class="top-door door"></div>
+			</div>
+			<div class="gallery-bottom">
+				<div class="bottom-door door"></div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="gallery-option">
+	<button class="in">前进</button>
+	<button class="out">后退</button>
+	<button class="to-left">往左走</button>
+	<button class="to-right">往右走</button>
+	<button class="open">开门</button>
+	<button class="close">关门</button>
+</div>
+
+/* ---------画廊------------- */
+.gallery-container {
+	width: 1300px;
+	height: 600px;
+	margin: 20px auto;
+	border: 1px solid #ff7d00;
+	box-shadow: 0 0 20px #43ff33;
+	overflow: hidden;
+}
+
+.gallery-container .gallery-stage {
+	width: 100%;
+	height: 100%;
+	perspective: 300px;
+	-webkit-perspective: 300px;
+	-moz-perspective: 300px;
+	transition: all 2s linear 0.5s;
+	-webkit-transition: all 2s linear 0.5s;
+	-moz-transition: all 2s linear 0.5s;
+	perspective-origin: 50% 50%;
+	-webkit-perspective-origin: 50% 50%;
+	-moz-perspective-origin: 50% 50%;
+}
+
+.gallery-container .gallery-stage .gallery {
+	width: 1100px;
+	height: 500px;
+	position: relative;
+	margin: 0 auto;
+	transform: translateZ(-300px);
+	-webkit-transform: translateZ(-300px);
+	-moz-transform: translateZ(-300px);
+	transition: all 2s linear 0.5s;
+	-webkit-transition: all 2s linear 0.5s;
+	-moz-transition: all 2s linear 0.5s;
+}
+
+.gallery-container .gallery-stage .gallery .gallery-horizontal {
+	width: 1100px;
+	height: 500px;
+	position: absolute;
+}
+
+.gallery-container .gallery-stage .gallery .gallery-top {
+	width: 1100px;
+	height: 1100px;
+	position: absolute;
+	transform: rotateX(-90deg) translateY(550px) translateZ(-550px);
+	-webkit-transform: rotateX(-90deg) translateY(550px) translateZ(-550px);
+	-moz-transform: rotateX(-90deg) translateY(550px) translateZ(-550px);
+}
+
+.gallery-container .gallery-stage .gallery .gallery-bottom {
+	width: 1100px;
+	height: 1100px;
+	position: absolute;
+	transform: rotateX(90deg) translateY(-550px) translateZ(50px);
+	-webkit-transform: rotateX(90deg) translateY(-550px) translateZ(50px);
+	-moz-transform: rotateX(90deg) translateY(-550px) translateZ(50px);
+}
+
+.gallery-container .gallery-stage .gallery .door {
+	width: 100%;
+	height: 100%;
+	position: absolute;
+}
+
+.gallery-container .gallery-stage .face-door {
+	/* .rect-door旋转bug */
+	transform: translateZ(1px);
+	-webkit-transform: translateZ(1px);
+	-moz-transform: translateZ(1px);
+}
+
+.gallery-container .gallery-stage .face-wall {
+	background-color: rgba(204, 204, 204, 1);
+	z-index: 1;
+	width: 80%;
+	height: 100%;
+	position: absolute;
+}
+
+.gallery-container .gallery-stage .back-wall {
+	background: url('../imgs/test-1/6.jpg') no-repeat center rgba(204, 204, 204, 1);
+	z-index: 2;
+	display: none;
+	transform: rotateY(-180deg);
+	-webkit-transform: rotateY(-180deg);
+	-moz-transform: rotateY(-180deg);
+	width: 80%;
+	height: 100%;
+	position: absolute;
+}
+
+.gallery-container .gallery-stage .rect-door {
+	background-color: #ff7d00;
+	width: 19%;
+	height: 100%;
+	position: absolute;
+	right: 0;
+	transform-origin: right bottom;
+	-webkit-transform-origin: right bottom;
+	-moz-transform-origin: right bottom;
+	transform: rotateY(0deg);
+	transition: all 2s linear 0.3s;
+	-webkit-transition: all 2s linear 0.3s;
+	-moz-transition: all 2s linear 0.3s;
+}
+
+.gallery-container .gallery-stage .rect-door .pole {
+	width: 18px;
+	height: 60px;
+	background-color: silver;
+	position: relative;
+	top: 50%;
+	left: 15%;
+}
+
+.gallery-container .gallery-stage .back-door {
+	background: url('../imgs/test-1/8.jpg') no-repeat center rgba(255, 255, 255, 1);
+	transform: translateZ(-1100px);
+	-webkit-transform: translateZ(-1100px);
+	-moz-transform: translateZ(-1100px);
+}
+
+.gallery-container .gallery-stage .back-door .desc-wall {
+	width: 25%;
+	height: 30%;
+	position: absolute;
+	margin: 15% 5%;
+}
+
+.gallery-container .gallery-stage .back-door .desc-wall .desc {
+	display: block;
+	font-size: 20px;
+	color: #ffc107;
+	position: relative;
+	margin: auto auto;
+	width: 40%;
+}
+
+.gallery-container .gallery-stage .left-door {
+	background: url('../imgs/test-1/2.jpg') no-repeat center rgba(255, 125, 0, 1);
+	transform: rotateY(90deg) translateX(550px) translateZ(-550px);
+	-webkit-transform: rotateY(90deg) translateX(550px) translateZ(-550px);
+	-moz-transform: rotateY(90deg) translateX(550px) translateZ(-550px);
+}
+
+.gallery-container .gallery-stage .right-door {
+	background: url('../imgs/test-1/3.jpg') no-repeat center rgba(100, 100, 0, 1);
+	transform: rotateY(-90deg) translateX(-550px) translateZ(-550px);
+	-webkit-transform: rotateY(-90deg) translateX(-550px) translateZ(-550px);
+	-moz-transform: rotateY(-90deg) translateX(-550px) translateZ(-550px);
+}
+
+.gallery-container .gallery-stage .top-door {
+	background: url('../imgs/test-1/4.jpg') no-repeat center rgba(100, 100, 100, 1);
+}
+
+.gallery-container .gallery-stage .bottom-door {
+	background: url('../imgs/test-1/5.jpg') no-repeat center deepskyblue;
+}
+
+.gallery-option {
+	width: 1200px;
+	margin: 0 auto;
+	text-align: center;
+}
+
+.gallery-option button {
+	font-size: 20px;
+	width: 70px;
+	margin: 10px;
+}
+
+/* 朝画廊走 */
+@keyframes to-gallery {
+	0 {
+		transform: translateZ(-300px);
+	}
+	100% {
+		transform: translateZ(80px);
+	}
+}
+
+@-webkit-keyframes to-gallery {
+	0 {
+		-webkit-transform: translateZ(-300px);
+	}
+	100% {
+		-webkit-transform: translateZ(80px);
+	}
+}
+
+@-moz-keyframes to-gallery {
+	0 {
+		-moz-transform: translateZ(-300px);
+	}
+	100% {
+		-moz-transform: translateZ(80px);
+	}
+}
+
+@keyframes turn-right {
+	0 {
+		perspective-origin: 50% 50%;
+	}
+	100% {
+		perspective-origin: 90% 50%;
+	}
+}
+
+@-webkit-keyframes turn-right {
+	0 {
+		-webkit-perspective-origin: 50% 50%;
+	}
+	100% {
+		-webkit-perspective-origin: 90% 50%;
+	}
+}
+
+@-moz-keyframes turn-right {
+	0 {
+		-moz-perspective-origin: 50% 50%;
+	}
+	100% {
+		-moz-perspective-origin: 90% 50%;
+	}
+}
+
+@keyframes open-door {
+	0 {
+		transform: rotateY(0deg);
+	}
+	100% {
+		transform: rotateY(100deg);
+	}
+}
+
+@-webkit-keyframes open-door {
+	0 {
+		-webkit-transform: rotateY(0deg);
+	}
+	100% {
+		-webkit-transform: rotateY(100deg);
+	}
+}
+
+@-moz-keyframes open-door {
+	0 {
+		-moz-transform: rotateY(0deg);
+	}
+	100% {
+		-moz-transform: rotateY(100deg);
+	}
+}
+
+@keyframes walk-in-gallery {
+	0 {
+		transform: translateZ(80px);
+	}
+	100% {
+		transform: translateZ(310px);
+	}
+}
+
+@-webkit-keyframes walk-in-gallery {
+	0 {
+		-webkit-transform: translateZ(80px);
+	}
+	100% {
+		-webkit-transform: translateZ(310px);
+	}
+}
+
+@-moz-keyframes walk-in-gallery {
+	0 {
+		-moz-transform: translateZ(80px);
+	}
+	100% {
+		-moz-transform: translateZ(310px);
+	}
+}
+
+/* 在画廊中左转90deg */
+@keyframes to-left-door-1 {
+	0 {
+		transform: translateZ(310px) rotateY(0deg);
+	}
+	100% {
+		transform: translateZ(300px) rotateY(-90deg);
+	}
+}
+
+@-webkit-keyframes to-left-door-1 {
+	0 {
+		-webkit-transform: translateZ(310px) rotateY(0deg);
+	}
+	100% {
+		-webkit-transform: translateZ(310px) rotateY(-90deg);
+	}
+}
+
+@-moz-keyframes to-left-door-1 {
+	0 {
+		-moz-transform: translateZ(310px) rotateY(0deg);
+	}
+	100% {
+		-moz-transform: translateZ(310px) rotateY(-90deg);
+	}
+}
+
+@keyframes to-left-door-2 {
+	0 {
+		perspective-origin: 90% 50%;
+	}
+	100% {
+		/* 50%是零界点 */
+		perspective-origin: 55% 50%;
+	}
+}
+
+@-webkit-keyframes to-left-door-2 {
+	0 {
+		-webkit-perspective-origin: 90% 50%;
+	}
+	100% {
+		-webkit-perspective-origin: 55% 50%;
+	}
+}
+
+@-moz-keyframes to-left-door-2 {
+	0 {
+		-moz-perspective-origin: 90% 50%;
+	}
+	100% {
+		-moz-perspective-origin: 55% 50%;
+	}
+}
+
+@keyframes along-face-door-to-center {
+	0 {
+		transform: translateZ(310px) rotateY(-90deg);
+	}
+	100% {
+		transform: translateZ(550px) rotateY(-90deg);
+	}
+}
+
+@-webkit-keyframes along-face-door-to-center {
+	0 {
+		-webkit-transform: translateZ(310px) rotateY(-90deg);
+	}
+	100% {
+		-webkit-transform: translateZ(550px) rotateY(-90deg);
+	}
+}
+
+@-moz-keyframes along-face-door-to-center {
+	0 {
+		-moz-transform: translateZ(310px) rotateY(-90deg);
+	}
+	100% {
+		-moz-transform: translateZ(550px) rotateY(-90deg);
+	}
+}
+
+@keyframes right-to-back-door {
+	0 {
+		transform: translateZ(550px) rotateY(-90deg);
+	}
+	100% {
+		transform: translateZ(310px) rotateY(0deg);
+	}
+}
+
+@-webkit-keyframes right-to-back-door {
+	0 {
+		-webkit-transform: translateZ(550px) rotateY(-90deg);
+	}
+	100% {
+		-webkit-transform: translateZ(310px) rotateY(0deg);
+	}
+}
+
+@-moz-keyframes right-to-back-door {
+	0 {
+		-moz-transform: translateZ(550px) rotateY(-90deg);
+	}
+	100% {
+		-moz-transform: translateZ(310px) rotateY(0deg);
+	}
+}
+
+@keyframes face-to-back-door {
+	0 {
+		transform: translateZ(310px) rotateY(0deg);
+	}
+	100% {
+		transform: translateZ(1050px) rotateY(0deg);
+	}
+}
+
+@-webkit-keyframes face-to-back-door {
+	0 {
+		-webkit-transform: translateZ(310px) rotateY(0deg);
+	}
+	100% {
+		-webkit-transform: translateZ(1050px) rotateY(0deg);
+	}
+}
+
+@-moz-keyframes face-to-back-door {
+	0 {
+		-moz-transform: translateZ(310px) rotateY(0deg);
+	}
+	100% {
+		-moz-transform: translateZ(1050px) rotateY(0deg);
+	}
+}
+
+@keyframes right-to-right-door {
+	0 {
+		transform: translateZ(1050px) rotateY(0deg);
+	}
+	100% {
+		/* 上一个步骤是距离back-door 50px,距离right-door 550px */
+		transform: rotateY(90deg) translateX(50px) translateZ(550px);
+	}
+}
+
+@-webkit-keyframes right-to-right-door {
+	0 {
+		-webkit-transform: translateZ(1050px) rotateY(0deg);
+	}
+	100% {
+		-webkit-transform: rotateY(90deg) translateX(50px) translateZ(550px);
+	}
+}
+
+@-moz-keyframes right-to-right-door {
+	0 {
+		-moz-transform: translateZ(1050px) rotateY(0deg);
+	}
+	100% {
+		-moz-transform: rotateY(90deg) translateX(50px) translateZ(550px);
+	}
+}
+
+@keyframes face-to-right-door {
+	0 {
+		transform: rotateY(90deg) translateX(50px) translateZ(550px);
+	}
+	100% {
+		transform: rotateY(90deg) translateX(-700px) translateZ(550px);
+	}
+}
+
+@-webkit-keyframes face-to-right-door {
+	0 {
+		-webkit-transform: rotateY(90deg) translateX(50px) translateZ(550px);
+	}
+	100% {
+		-webkit-transform: rotateY(90deg) translateX(-700px) translateZ(550px);
+	}
+}
+
+@-moz-keyframes face-to-right-door {
+	0 {
+		-moz-transform: rotateY(90deg) translateX(50px) translateZ(550px);
+	}
+	100% {
+		-moz-transform: rotateY(90deg) translateX(-700px) translateZ(550px);
+	}
+}
+
+@keyframes right-to-face-door {
+	0 {
+		transform: rotateY(90deg) translateX(-700px) translateZ(550px);
+	}
+	100% {
+		transform: rotateY(180deg) translateX(-550px) translateZ(550px);
+	}
+}
+
+@-webkit-keyframes right-to-face-door {
+	0 {
+		-webkit-transform: rotateY(90deg) translateX(-700px) translateZ(550px);
+	}
+	100% {
+		-webkit-transform: rotateY(180deg) translateX(-550px) translateZ(550px);
+	}
+}
+
+@-moz-keyframes right-to-face-door {
+	0 {
+		-moz-transform: rotateY(90deg) translateX(-700px) translateZ(550px);
+	}
+	100% {
+		-moz-transform: rotateY(180deg) translateX(-550px) translateZ(550px);
+	}
+}
+
+@keyframes face-to-face-door {
+	0 {
+		transform: rotateY(180deg) translateX(-550px) translateZ(550px);
+	}
+	100% {
+		transform: rotateY(180deg) translateX(-550px) translateZ(-600px);
+	}
+}
+
+@-webkit-keyframes face-to-face-door {
+	0 {
+		-webkit-transform: rotateY(180deg) translateX(-550px) translateZ(550px);
+	}
+	100% {
+		-webkit-transform: rotateY(180deg) translateX(-550px) translateZ(-600px);
+	}
+}
+
+@-moz-keyframes face-to-face-door {
+	0 {
+		-moz-transform: rotateY(180deg) translateX(-550px) translateZ(550px);
+	}
+	100% {
+		-moz-transform: rotateY(180deg) translateX(-550px) translateZ(-600px);
+	}
+}
+
+@keyframes out-gallery {
+	0 {
+		transform: rotateY(180deg) translateX(-550px) translateZ(-600px);
+	}
+	100% {
+		transform: rotateY(180deg) translateX(-1200px) translateZ(-300px);
+	}
+}
+
+@-webkit-keyframes out-gallery {
+	0 {
+		-webkit-transform: rotateY(180deg) translateX(-550px) translateZ(-600px);
+	}
+	100% {
+		-webkit-transform: rotateY(180deg) translateX(-1200px) translateZ(-300px);
+	}
+}
+
+@-moz-keyframes out-gallery {
+	0 {
+		-moz-transform: rotateY(180deg) translateX(-550px) translateZ(-600px);
+	}
+	100% {
+		-moz-transform: rotateY(180deg) translateX(-1200px) translateZ(-300px);
+	}
+}
+
+@keyframes turn-back-to-face-door {
+	0 {
+		transform: rotateY(180deg) translateX(-1200px) translateZ(-300px);
+	}
+	100% {
+		transform: rotateY(0deg) translateX(0px) translateZ(-300px);
+	}
+}
+
+@-webkit-keyframes turn-back-to-face-door {
+	0 {
+		-webkit-transform: rotateY(180deg) translateX(-1200px) translateZ(-300px);
+	}
+	100% {
+		-webkit-transform: rotateY(0deg) translateX(0px) translateZ(-300px);
+	}
+}
+
+@-moz-keyframes turn-back-to-face-door {
+	0 {
+		-moz-transform: rotateY(180deg) translateX(-1200px) translateZ(-300px);
+	}
+	100% {
+		-moz-transform: rotateY(0deg) translateX(0px) translateZ(-300px);
+	}
+}
+
+@keyframes close-door {
+	0 {
+		transform: rotateY(100deg);
+	}
+	100% {
+		transform: rotateY(0deg);
+	}
+}
+
+@-webkit-keyframes close-door {
+	0 {
+		-webkit-transform: rotateY(100deg);
+	}
+	100% {
+		-webkit-transform: rotateY(0deg);
+	}
+}
+
+@-moz-keyframes close-door {
+	0 {
+		-moz-transform: rotateY(100deg);
+	}
+	100% {
+		-moz-transform: rotateY(0deg);
+	}
+}
+
+/* 进入画廊之前 */
+.to-gallery {
+	animation: to-gallery 3s linear 0.5s 1 forwards;
+	-webkit-animation: to-gallery 3s linear 0.5s 1 forwards;
+	-moz-animation: to-gallery 3s linear 0.5s 1 forwards;
+}
+
+.turn-right {
+	animation: turn-right 3s linear 0.5s 1 forwards;
+	-webkit-animation: turn-right 3s linear 0.5s 1 forwards;
+	-moz-animation: turn-right 3s linear 0.5s 1 forwards;
+}
+
+.open-door {
+	animation: open-door 2s linear 0.5s 1 forwards;
+	-webkit-animation: open-door 2s linear 0.5s 1 forwards;
+	-moz-animation: open-door 2s linear 0.5s 1 forwards;
+}
+/* 进入画廊之前 */
+
+/* 进入画廊 */
+.walk-in-gallery {
+	animation: walk-in-gallery 2s linear 0.5s 1 forwards;
+	-webkit-animation: walk-in-gallery 2s linear 0.5s 1 forwards;
+	-moz-animation: walk-in-gallery 2s linear 0.5s 1 forwards;
+}
+/* 进入画廊 */
+
+/* 画廊中 */
+.to-left-door-1 {
+	animation: to-left-door-1 3s linear 0.5s 1 forwards;
+	-webkit-animation: to-left-door-1 3s linear 0.5s 1 forwards;
+	-moz-animation: to-left-door-1 3s linear 0.5s 1 forwards;
+}
+
+.to-left-door-2 {
+	animation: to-left-door-2 3s linear 0.5s 1 forwards;
+	-webkit-animation: to-left-door-2 3s linear 0.5s 1 forwards;
+	-moz-animation: to-left-door-2 3s linear 0.5s 1 forwards;
+}
+
+.along-face-door-to-center {
+	animation: along-face-door-to-center 3s linear 0.5s 1 forwards;
+	-webkit-animation: along-face-door-to-center 3s linear 0.5s 1 forwards;
+	-moz-animation: along-face-door-to-center 3s linear 0.5s 1 forwards;
+}
+
+.right-to-back-door {
+	animation: right-to-back-door 3s linear 0.5s 1 forwards;
+	-webkit-animation: right-to-back-door 3s linear 0.5s 1 forwards;
+	-moz-animation: right-to-back-door 3s linear 0.5s 1 forwards;
+}
+
+.face-to-back-door {
+	animation: face-to-back-door 6s linear 0.5s 1 forwards;
+	-webkit-animation: face-to-back-door 6s linear 0.5s 1 forwards;
+	-moz-animation: face-to-back-door 6s linear 0.5s 1 forwards;
+}
+
+.right-to-right-door {
+	animation: right-to-right-door 3s linear 2s 1 forwards;
+	-webkit-animation: right-to-right-door 3s linear 2s 1 forwards;
+	-moz-animation: right-to-right-door 3s linear 2s 1 forwards;
+}
+
+.face-to-right-door {
+	animation: face-to-right-door 5s linear 1s 1 forwards;
+	-webkit-animation: face-to-right-door 5s linear 1s 1 forwards;
+	-moz-animation: face-to-right-door 5s linear 1s 1 forwards;
+}
+
+.right-to-face-door {
+	animation: right-to-face-door 3s linear 1s 1 forwards;
+	-webkit-animation: right-to-face-door 3s linear 1s 1 forwards;
+	-moz-animation: right-to-face-door 3s linear 1s 1 forwards;
+}
+
+.face-to-face-door {
+	animation: face-to-face-door 6s linear 1s 1 forwards;
+	-webkit-animation: face-to-face-door 6s linear 1s 1 forwards;
+	-moz-animation: face-to-face-door 6s linear 1s 1 forwards;
+}
+
+.out-gallery {
+	animation: out-gallery 1s linear 1 forwards;
+	-webkit-animation: out-gallery 1s linear 1 forwards;
+	-moz-animation: out-gallery 1s linear 1 forwards;
+}
+
+.turn-back-to-face-door {
+	animation: turn-back-to-face-door 2s linear 1 forwards;
+	-webkit-animation: turn-back-to-face-door 2s linear 1 forwards;
+	-moz-animation: turn-back-to-face-door 2s linear 1 forwards;
+}
+
+.close-door {
+	animation: close-door 2s linear 0.5s 1 forwards;
+	-webkit-animation: close-door 2s linear 0.5s 1 forwards;
+	-moz-animation: close-door 2s linear 0.5s 1 forwards;
+}
+/* 画廊中 */
+/* ---------画廊------------- */
+
+// -----------------点击.gallery-container .gallery-stage--------------
+$('.gallery-container .gallery-stage').bind('mousedown', function(e) {
+	if(e.target.className == 'pole') {
+		$('.gallery-container .gallery-stage .rect-door .pole').click();
+		return false;
+	}
+	var $stage = $(this),
+	x = e.clientX,
+	y = e.clientY,
+	perspective = $stage.css('-webkit-perspective') || $stage.css('-moz-perspective') || $stage.css('-webkit-perspective'),
+	perspective = new Number(perspective.replace('px', '')),
+	button = e.button;
+	$stage.data({
+		x : x,
+		y : y
+	});
+	if(button == 0 || button == 1) {
+		perspective += 30;
+	} else {
+		perspective -= 30;
+	}
+	$stage.css({
+		'perspective' : perspective,
+		'-webkit-perspective' : perspective,
+		'-moz-perspective' : perspective
+	});
+}).bind('contextmenu', function() {
+	return false;
+});
+
+$('.gallery-container .gallery-stage .rect-door .pole').bind('click', function() {
+	var $door = $('.gallery-container .gallery-stage .rect-door'),
+	yDeg = $door.data().yDeg || 0;
+	$door.data({
+		yDeg : ++yDeg
+	});
+	$door.css({
+		'transform' : 'rotateY(' + yDeg + 'deg)',
+		'-webkit-transform' : 'rotateY(' + yDeg + 'deg)',
+		'-moz-transform' : 'rotateY(' + yDeg + 'deg)'
+	});
+});
+// -----------------点击.gallery-container .gallery-stage--------------
+
+// -----------------点击按钮---------------------------------------------
+$('.gallery-option button').bind('click', function(e) {
+	var $button = $(this);
+	if($button.hasClass('in') || $button.hasClass('out')) {
+		var $gallery = $('.gallery-container .gallery-stage .gallery'),
+		z = $gallery.data().z;
+		if(z === undefined) {
+			z = -300;
+		}
+		if($button.hasClass('in')) {
+			z += 20;
+		} else {
+			z -= 20;
+		}
+		$gallery.css({
+			'transform' : 'translateZ(' + z + 'px)',
+			'-webkit-transform' : 'translateZ(' + z + 'px)',
+			'-moz-transform' : 'translateZ(' + z + 'px)'
+		}).data({
+			z : z
+		});
+	}
+	// ff中出现抖动---BUG
+	if($button.hasClass('open') || $button.hasClass('close')) {
+		var $door = $('.gallery-container .gallery-stage .rect-door'),
+		yDeg = $door.data().yDeg || 0;
+		if($button.hasClass('open')) {
+			yDeg += 5;
+		} else {
+			yDeg -= 5;
+		}
+		$door.data({
+			yDeg : yDeg
+		});
+		$door.css({
+			'transform' : 'rotateY(' + yDeg + 'deg)',
+			'-webkit-transform' : 'rotateY(' + yDeg + 'deg)',
+			'-moz-transform' : 'rotateY(' + yDeg + 'deg)'
+		});
+	}
+	if($button.hasClass('to-left') || $button.hasClass('to-right')) {
+		var $stage = $('.gallery-container .gallery-stage'),
+		x = $stage.data().x || 50,
+		y = $stage.data().y || 50;
+		if($button.hasClass('to-left')) {
+			x -= 5;
+		} else {
+			x += 5;
+		}
+		$stage.data({
+			x : x,
+			y : y
+		});
+		$stage.css({
+			'perspective-origin' : x + '% ' + y + '%',
+			'-webkit-perspective-origin' : x + '% ' + y + '%',
+			'-moz-perspective-origin' : x + '% ' + y + '%'
+		});
+	}
+});
+// -----------------点击按钮---------------------------------------------
+
+// -------------------纯动画--------------------------------------------
+(function() {
+	var $gallery = $('.gallery-container .gallery-stage .gallery'),
+	$stage = $('.gallery-container .gallery-stage'),
+	$door = $('.gallery-container .gallery-stage .rect-door');
+	animationEvent && $gallery[0].addEventListener(animationEvent.end, function() {
+		if($door.hasClass('open-door')) {
+			// 相同的动画类型，必须保存之前动画的状态
+			if(!$gallery.hasClass('walk-in-gallery')) {
+				$gallery.css({
+					'transform' : 'translateZ(80px)',
+					'-webkit-transform' : 'translateZ(80px)',
+					'-moz-transform' : 'translateZ(80px)'
+				}).addClass('walk-in-gallery');
+			} else if (!$gallery.hasClass('to-left-door-1')) {
+				// 进入房间内后将.gallery-container .gallery-stage .back-wall做为face-door的外露墙体
+				$('.gallery-container .gallery-stage .back-wall').css({
+					display : 'block'
+				});
+				$gallery.css({
+					'transform' : 'translateZ(310px)',
+					'-webkit-transform' : 'translateZ(310px)',
+					'-moz-transform' : 'translateZ(310px)'
+				}).addClass('to-left-door-1');
+				$stage.css({
+					'perspective-origin' : '90% 50%',
+					'-webkit-perspective-origin' : '90% 50%',
+					'-moz-perspective-origin' : '90% 50%'
+				}).addClass('to-left-door-2');
+			} else if (!$gallery.hasClass('along-face-door-to-center')) {
+				$gallery.css({
+					'transform' : 'translateZ(310px) rotateY(-90deg)',
+					'-webkit-transform' : 'translateZ(310px) rotateY(-90deg)',
+					'-moz-transform' : 'translateZ(310px) rotateY(-90deg)'
+				}).addClass('along-face-door-to-center');
+			} else if (!$gallery.hasClass('right-to-back-door')) {
+				$gallery.css({
+					'transform' : 'translateZ(550px) rotateY(-90deg)',
+					'-webkit-transform' : 'translateZ(550px) rotateY(-90deg)',
+					'-moz-transform' : 'translateZ(550px) rotateY(-90deg)'
+				}).addClass('right-to-back-door');
+			} else if (!$gallery.hasClass('face-to-back-door')) {
+				$gallery.css({
+					'transform' : 'translateZ(310px) rotateY(0deg)',
+					'-webkit-transform' : 'translateZ(310px) rotateY(0deg)',
+					'-moz-transform' : 'translateZ(310px) rotateY(0deg)'
+				}).addClass('face-to-back-door');
+			} else if (!$gallery.hasClass('right-to-right-door')) {
+				$gallery.css({
+					'transform' : 'translateZ(1050px) rotateY(0deg)',
+					'-webkit-transform' : 'translateZ(1050px) rotateY(0deg)',
+					'-moz-transform' : 'translateZ(1050px) rotateY(0deg)'
+				}).addClass('right-to-right-door');
+			} else if (!$gallery.hasClass('face-to-right-door')) {
+				$gallery.css({
+					'transform' : 'rotateY(90deg) translateX(50px) translateZ(550px)',
+					'-webkit-transform' : 'rotateY(90deg) translateX(50px) translateZ(550px)',
+					'-moz-transform' : 'rotateY(90deg) translateX(50px) translateZ(550px)'
+				}).addClass('face-to-right-door');
+			} else if (!$gallery.hasClass('right-to-face-door')) {
+				$gallery.css({
+					'transform' : 'rotateY(90deg) translateX(-700px) translateZ(550px)',
+					'-webkit-transform' : 'rotateY(90deg) translateX(-700px) translateZ(550px)',
+					'-moz-transform' : 'rotateY(90deg) translateX(-700px) translateZ(550px)'
+				}).addClass('right-to-face-door');
+			}else if (!$gallery.hasClass('face-to-face-door')) {
+				$gallery.css({
+					'transform' : 'rotateY(180deg) translateX(-550px) translateZ(550px)',
+					'-webkit-transform' : 'rotateY(180deg) translateX(-550px) translateZ(550px)',
+					'-moz-transform' : 'rotateY(180deg) translateX(-550px) translateZ(550px)'
+				}).addClass('face-to-face-door');
+			} else if (!$gallery.hasClass('out-gallery')) {
+				// 出房间后将.gallery-container .gallery-stage .face-wall做为face-door的外露墙体
+				$('.gallery-container .gallery-stage .back-wall').css({
+					display : 'none'
+				});
+				$gallery.css({
+					'transform' : 'rotateY(180deg) translateX(-550px) translateZ(-600px)',
+					'-webkit-transform' : 'rotateY(180deg) translateX(-550px) translateZ(-600px)',
+					'-moz-transform' : 'rotateY(180deg) translateX(-550px) translateZ(-600px)'
+				}).addClass('out-gallery');
+			} else if (!$gallery.hasClass('turn-back-to-face-door')) {
+				$gallery.css({
+					'transform' : 'rotateY(180deg) translateX(-1200px) translateZ(-300px)',
+					'-webkit-transform' : 'rotateY(180deg) translateX(-1200px) translateZ(-300px)',
+					'-moz-transform' : 'rotateY(180deg) translateX(-1200px) translateZ(-300px)'
+				}).addClass('turn-back-to-face-door');
+			} else if (!$door.hasClass('close-door')) {
+				$door.css({
+					'transform' : 'rotateY(100deg)',
+					'-webkit-transform' : 'rotateY(100deg)',
+					'-moz-transform' : 'rotateY(100deg)'
+				}).addClass('close-door');
+			}
+		} else {
+			$stage.css({
+				'transform' : 'translateZ(0px)',
+				'-webkit-transform' : 'translateZ(0px)',
+				'-moz-transform' : 'translateZ(0px)'
+			}).addClass('turn-right');
+		}
+	});
+	animationEvent && $stage[0].addEventListener(animationEvent.end, function(e) {
+		// 因为.gallery-container .gallery-stage .gallery执行动画的时候
+		// 它的父级.gallery-container .gallery-stage也在执行动画，dom包含关系
+		// 需要判断事件源
+		if(e.target.className == 'gallery-stage turn-right') {
+			$door.addClass('open-door');
+		}
+	});
+	$gallery.addClass('to-gallery');
+})();
+// -------------------纯动画--------------------------------------------
+
+2016-7-1	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+行级元素间有默认间距，要消除间距需要给父级容器设置font: 0/0 a，即字体大小为0，行高为0。
+<div class="hourglass-container">
+	<div class="hourglass-horizontal">
+		<div class="top-glass"></div>
+		<div class="bottom-glass"></div>
+		<div class="top-circle"></div>
+		<div class="bottom-circle"></div>
+	</div>
+</div>
+
+.delete-img-container {
+	border: 1px solid #ff7d00;
+	box-shadow: 0 0 20px #ff00ff;
+	width: 1200px;
+	height: 220px;
+	margin: 20px auto;
+	border-radius: 5px;
+}
+
+.delete-img-container .img-container {
+	font: 0/0 a;
+}
+
+.delete-img-container .img-container img {
+	width: 200px;
+	height: 200px;
+	float: left;
+	margin: 10px 5px 0 2px;
+	transition: width ease 2s, height ease 2s, opacity ease 2s;
+	-webkit-transition: width ease 2s, height ease 2s, opacity ease 2s;
+	-moz-transition: width ease 2s, height ease 2s, opacity ease 2s;
+	-ms-transition: width ease 2s, height ease 2s, opacity ease 2s;
+}
+
+2016-7-1	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+很多时候说的“模糊”在浏览器中专业名词叫“锯齿”,解决canvas画图重合时造成锯齿的方案。
+
+<div id="percent-container" style="position: relative; text-align: center; line-height: 75px; width: 75px; height: 75px;">
+	<span style="color: deepskyblue; font-weight: 700;"></span>
+	<canvas width="75px" height="75px" style="position: absolute; left: 0; top: 0;"></canvas>
+</div>
+
+(function() {
+	function getCanvas(selector) {
+		var context = $(selector).find('canvas')[0].getContext('2d');
+		return context;
+	}
+	
+	// 画圆
+	function animateDrawArc(selector, param) {
+		var option = {
+			value : 50,
+			// 值后缀
+			suffix : '',
+			strokeStyle : 'deepskyblue',
+			// 默认线条宽度
+			lineWidth : 10,
+			// 默认半径50px
+			radius : 50,
+			// 从正上方开始绘画--270°
+			reg : 1.5 * Math.PI,
+			// 默认顺时针
+			counterClockwise : false,
+			// 每次绘画的间隔时间（毫秒）
+			intervalMilliseconds : 10,
+			// 正圆strokeStyle颜色
+			fullArcStrokeStyle : '#ddd'
+		};
+		option = $.extend(true, option, param);
+		
+		if(option.value > 100) {
+			option.value = 100;
+		}
+		var $container = $(selector);
+		canvas = getCanvas(selector),
+		$span = $container.find('span'),
+		lineWidth = option.lineWidth,
+		r = option.radius
+		x = option.x,
+		y = option.y,
+		value = Math.floor(option.value),
+		diff = option.value - value,
+		suffix = option.suffix,
+		i = 0,
+		fullArcStrokeStyle = option.fullArcStrokeStyle,
+		intervalMilliseconds = option.intervalMilliseconds,
+		reg = option.reg,
+		PI = Math.PI,
+		counterClockwise = option.counterClockwise;
+		// ----------------先画正圆-------------------------
+		canvas.beginPath();
+		canvas.strokeStyle = fullArcStrokeStyle;
+		canvas.lineWidth = lineWidth;
+		canvas.arc(x, y, r, 0, 2 * Math.PI);
+		canvas.stroke();
+		canvas.closePath();
+		// ----------------先画正圆-------------------------
+		// ----------------动画做圆-------------------------
+		// chrome version 46--bug
+		canvas.globalCompositeOperation = 'source-atop';
+		canvas.beginPath();
+		canvas.strokeStyle = option.strokeStyle;
+		setTimeout(function() {
+			if(i < value) {
+				// 每次增加1%，但是这个圆有点模糊；如果是一次性画圆就没有这个问题
+				canvas.arc(x, y, r, reg, (reg += 0.01 * 2 * PI), counterClockwise);
+				i++;
+				$span.html(i + suffix);
+				canvas.stroke();
+				setTimeout(arguments.callee, intervalMilliseconds);
+			} else if (i == value && diff) {
+				// 如果有小数位，需要补全
+				setTimeout(function() {
+					canvas.arc(x, y, r, reg, (reg += 0.01 * new Number(diff).toFixed(1) * 2 * PI), counterClockwise);
+					$span.html(new Number(option.value).toFixed(1) + suffix);
+					canvas.stroke();
+				}, intervalMilliseconds);
+			}
+		}, intervalMilliseconds);
+	}
+	
+	window.AnimateCanvas = function() {
+		this.draw = animateDrawArc;
+	};
+	
+})();
+
+new AnimateCanvas().draw('#percent-container', {
+	value :70,
+	x : 38,
+	y : 38,
+	lineWidth : 5,
+	radius : 32,
+	suffix : '%'
+});
+
+2016-7-7	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+贝塞尔曲线
+二次:Q x1,y1 endx2,endy2		x1,y1控制点，即起始点沿初始运动线路的切线与结束点(endx2, endy2)沿结束线路的切线相交的点
+T: 辅助线
+<path d="M 0,0 T 100,100 M 0,0 Q 100,100 200,0 T 100,100" stroke="red" stroke-width="1" fill="none" />
+三次:C x1,y1 x2,y2 endx2,endy2	只是比二次曲线多了一个控制点
+<path d="M 0,100 C 100,200 300,0 400,100" stroke="red" stroke-width="1" fill="none" />
+
+2016-7-7	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+requestAnimationFrame与cancelAnimationFrame
+transitionEvent与animationEvent
+
+通过改变offset来显示图形边框
+function witchEvent() {
+	var a, element = document.createElement('div'),
+	animations = {
+		animation : {
+			end : 'animationend'
+		},
+		WebkitAnimation : {
+			end : 'webkitAnimationEnd'
+		}
+	},
+	transitions = {
+		transition : {
+			end : 'transitionend'
+		},
+		WebkitTransition : {
+			end : 'webkitTransitionEnd'
+		}
+	},
+	eventObj = {},
+	style = element.style;
+	for(a in animations) {
+		if(style[a] != undefined) {
+			eventObj.animationEvent = animations[a];
+			break;
+		}
+	}
+	for(var t in transitions) {
+		if(style[t] != undefined) {
+			eventObj.transitionEvent = transitions[t];
+			break;
+		}
+	}
+	return eventObj;
+}
+var eventObj = witchEvent(),
+animationEvent = eventObj.animationEvent,
+transitionEvent = eventObj.transitionEvent;
+
+function addEvent(dom, type, callback) {
+	if(window.addEventListener) {
+		dom.addEventListener(type, callback);
+	} else if(window.attatchEvent) {
+		dom.attatchEvent('on' + type, callback);
+	} else {
+		console.error('浏览器太古老');
+	}
+}
+
+(function initAnimationFrame() {
+	var lastTime = 0,
+	browserPrefixs = 'webkit moz ms'.split(' '),
+	requestAnimationFrame = window.requestAnimationFrame,
+	cancelAnimationFrame = window.cancelAnimationFrame,
+	i = 0,
+	length = browserPrefixs.length;
+	
+	// 兼容不同浏览器
+	// 60帧每秒
+	if(!requestAnimationFrame || !cancelAnimationFrame) {
+		for(; i < length; i++) {
+			var prefix = browserPrefixs[i];
+			requestAnimationFrame = window[prefix + 'RequestAnimationFrame'];
+			cancelAnimationFrame = window[prefix + 'CancelAnimationFrame'];
+			if(requestAnimationFrame && !cancelAnimationFrame) {
+				break;
+			}
+		}
+	}
+	
+	// 兼容不支持requestAnimationFrame和cancelAnimationFrame的浏览器
+	if(!requestAnimationFrame || !cancelAnimationFrame) {
+		requestAnimationFrame = function(callback , element) {
+			var currentTime = Date.now(),
+			// 使setTimeout尽可能接近每秒60帧效果
+			timeToCall = Math.max(0, 16 - (currentTime - lastTime)),
+			id = setTimeout(function() {
+				callback(currentTime + timeToCall);
+			}, timeToCall),
+			lastTime = currentTime + timeToCall;
+			return id;
+		}
+		cancelAnimationFrame = function(id) {
+			clearTimeout(id);
+		}
+	}
+	
+	window.requestAnimationFrame = requestAnimationFrame;
+	window.cancelAnimationFrame = cancelAnimationFrame;
+	
+})();
+
+function render(dom, totalLength, mesc) {
+	var offset = 0,
+	// 默认动画2秒
+	mesc = mesc || 2000,
+	// 计算每帧增加多少
+	offsetPerFrame = totalLength / (60 * mesc / 1000);
+	transitionEvent && addEvent(dom, transitionEvent.end, function() {
+		console.log('动画完成');
+	});
+	dom.style.opacity = 0.5;
+	(function() {
+		offset += offsetPerFrame;
+		dom.style.strokeDasharray = offset + ' ' + totalLength;
+		if(offset < totalLength) {
+			requestAnimationFrame(arguments.callee);
+		}
+	})();
+}
+
+function getDom(id) {
+	return document.getElementById(id);
+}
+
+(function() {
+	var rect001 = getDom('rect-001'),
+	clientRect = rect001.getBoundingClientRect(),
+	width = clientRect.width,
+	height = clientRect.height,
+	circumference = 2 * (width + height);
+	render(rect001, circumference, 2000);
+})();
+
+(function() {
+	var rect002 = getDom('rect-002'),
+	clientRect = rect002.getBoundingClientRect(),
+	width = clientRect.width - 5,
+	height = clientRect.height - 5,
+	otherLength = Math.PI * 2 * 5,
+	circumference = 2 * (width + height) + otherLength;
+	render(rect002, circumference, 2000);
+})();
+
+<svg width="1000" height="400" style="border: 1px solid red;">
+	<rect id="rect-001" x="400" y="50" width="200" height="200" stroke="#111" stroke-width="1" fill="none" />
+	<path id="rect-002" d="M 625,50 L 815,50 A 5,5,0,0,1,820,55 L 820,245 A 5,5,0,0,1,815,250 L 625,250 A 5,5,0,0,1,620,245 L 620,55 A 5,5,0,0,1,625,50" fill="none" stroke="red" stroke-width="1" />
+</svg>
+
+2016-7-8	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+svg--filter
+<svg>
+	<defs>
+		<filter id="xxx" x="xxx" y="xxx" width="xxx%" height="xxx%">
+			...
+		</filter>
+	</defs>
+	<rect x="0" y="0" width="300" height="200" filter="url(#xxx)" />
+</svg>
+这里filter的x和y取值范围依赖于width和height，width和height默认都是120%(实际宽度和高度分别是width*300=360px和height*200=240px),
+其实也就是过滤的容器范围,它的子元素都会依赖于这两个值.
+例子:width="130%", y="150%",此时x和y的取值范围分别是[-1.3, 1.3]和[-1.5, 1.5],
+如果x是负数，表示隐藏右边范围的宽度百分比，如-0.5，表示看到的是元素左边百分之80%；
+如果x是正数，表示隐藏左边范围的宽度百分比，如0.7，看到的是元素右边百分之60%.
+y的值和x一样，只是针对垂直方向.
+<feOffset dx="xxx" dy="xxx">单位是px,这里dx和dy的取值范围分别是[-300, 390]
+
+高斯模糊居中效果
+<filter id="filter-002" x="-0.1" y="-0.1" width="1.2" height="1.2">
+	<feGaussianBlur result="filter-002-gb-001" in="SourceGraphic" stdDeviation="2" />
+</filter>
+<image x="480" y="10" width="200" height="200" xlink:href="../imgs/test-1/1.jpg" filter="url(#filter-002)" />
+
+2016-7-12	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+css transition!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+如果改变width或height，动画无效时，可能有以下几种原因
+1、页面一加载完成就修改width或height，没有加setTimeout
+2、事件源本身或者其父级元素不可见
+
+2016-7-12	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+svg模仿MAC电脑打开浏览器效果
+function flyAnimation(param) {
+	var id = param.id,
+	targetId = param.targetId,
+	targetDom = document.getElementById(targetId),
+	containerId = param.containerId,
+	svg = Snap('#' + containerId),
+	svgDom = document.getElementById(containerId),
+	containerRect = svgDom.getBoundingClientRect(),
+	path = svg.select('#' + id),
+	rect = null;
+	
+	function init() {
+		if(!path) {
+			path = svg.path({
+				id : id,
+				d : param.d,
+				fill : param.fill || '#ccc'
+			});
+			rect = document.getElementById(id).getBoundingClientRect();
+		} else {
+			rect = path.getBoundingClientRect();
+		}
+	}
+	init();
+	
+	var top = rect.top,
+	targetWidth = param.width,
+	targetHeight = param.height,
+	containerWidth = containerRect.width,
+	containerHeight = containerRect.height,
+	left = (containerWidth - targetWidth) / 2,
+	center = containerWidth / 2,
+	right = left + targetWidth,
+	top = (containerHeight - targetHeight) / 2,
+	middle = containerHeight / 2,
+	bottom = top + targetHeight;
+	
+	targetDom.style.top = top + 'px';
+	targetDom.style.left = left + 'px';
+	
+	function createPath(points) {
+		var i = 0,
+		length = points.length,
+		str = '';
+		for(; i < length; i++) {
+			var point = points[i];
+			if(!i) {
+				str += 'M ' + point.join(' ');
+			} else if (i % 2) {
+				str += 'Q ' + point.join(' ');
+			} else {
+				str += ' ' + point.join(' ');
+			}
+		}
+		return str;
+	}
+	
+	var triggerLeft = rect.left,
+	triggerRight = rect.right,
+	triggerCenter = (triggerLeft + triggerRight) / 2,
+	triggerTop = rect.top,
+	times = targetWidth / rect.width,
+	// 斜率
+	rate = param.rate && param.rate > 0.5 && param.rate || 0.5;
+	rate = rate >= 1 ? 1 : rate;
+	
+	// 第一阶段:triggerLeft-->left triggerRight-->right  triggerTop-->top
+	Snap.animate([triggerLeft, triggerRight, triggerTop, 0.5], [left, right, top, rate], function(value) {
+		var curLeft = value[0],
+		curRight = value[1],
+		// 上边中点
+		curCenter = (curLeft + curRight) / 2,
+		curTop = value[2],
+		totalLeft = curLeft + triggerLeft,
+		totalRight = curRight + triggerRight,
+		totalTop = triggerTop + curTop,
+		centerTop = totalTop * 0.5,
+		curRate = value[3],
+		to = [[curLeft, curTop], [curCenter, curTop], [curRight, curTop], [totalRight * curRate, centerTop],
+		      [triggerRight, triggerTop], [triggerCenter, triggerTop], [triggerLeft, triggerTop],
+		      [totalLeft * curRate, centerTop], [curLeft, curTop]],
+		d = createPath(to);
+		path.attr({
+			d : d
+		});
+	}, param.duration_f || 1000, mina.ease, function() {
+		targetDom.style.width = targetWidth + 'px';
+		targetDom.style.height = targetHeight + 'px';
+		// 第二阶段:triggerLeft-->left  triggerRight-->right  triggerTop-->bottom
+		Snap.animate([triggerLeft, triggerRight, triggerTop, rate], [left, right, bottom, 0.5], function(value) {
+			var curLeft = value[0],
+			curRight = value[1],
+			curBottom = value[2],
+			curRate = value[3],
+			totalLeft = left + curLeft,
+			totalRight = right + curRight,
+			totalTop = curBottom + top,
+			to = [[left, top], [(left + right) / 2, top], [right, top], [totalRight * curRate, totalTop * curRate],
+			      [curRight, curBottom], [(curLeft + curRight) / 2, curBottom], [curLeft, curBottom], 
+			      [totalLeft * curRate, totalTop * curRate], [left, top]],
+			d = createPath(to);
+			path.attr({
+				d : d
+			});
+		}, param.duration_s || 1000, mina.linear, function() {
+			// 第二阶段完成后显示目标元素
+			svgDom.style.display = 'none';
+		});
+	});
+	
+}
+
+flyAnimation({
+	id : 'path',
+	d : 'M 0 650 l 50 0',
+	containerId : 'svg-test',
+	targetId : 'target-sub',
+	width : 800,
+	height : 400,
+	duration_f : 1000,
+	duration_s : 1000,
+	rate : 0.6
+});
+
+<div id="target">
+	<div id="target-sub"></div>
+	<svg id="svg-test"></svg>
+</div>
+
+#target {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	position: absolute;
+}
+#target-sub {
+	width: 0;
+	height: 0;
+	background: url('../imgs/test-1/10.jpg') no-repeat;
+	position: absolute;
+	transition: width 1s linear, height 1s linear;
+	-webkit-transition: width 1s linear, height 1s linear;
+	-ms-transition: width 1s linear, height 1s linear;
+}
+#svg-test { 
+	margin: 0;
+	padding: 0;
+	position: absolute;
+	width: 100%;
+	height: 100%;
+}
+
+2016-7-15	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+viewBox动画
+<div id="viewBox-target">
+	<svg width="800" height="400" id="viewBox-container">
+		<image x="0" y="0" width="800" height="400" xlink:href="../imgs/test-1/10.jpg" />
+	</svg>
+</div>
+
+#viewBox-target {
+	width: 800px;
+	height: 400px;
+	position: absolute;
+	top: 700px;
+}
+#viewBox-container {
+	border: 1px solid red;
+}
+
+var imageContainer = Snap('#viewBox-container');
+Snap.animate([0, 0], [800, 400], function(value) {
+	imageContainer.attr({
+		'viewBox' : '0 0 ' + value[0] + ' ' + value[1]
+	});
+}, 1000, mina.linear);
+
+2016-8-31	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+监控dom节点与子节点变化	MutationObserver
+ie11+、ff、chrome
+ie11以下，使用requestAnimationFrame来监测
+
+注:  childList, attributes, 或者characterData三个属性中必须至少有一个为true.否则,会抛出异常"An invalid or illegal string was specified".
+
+属性	描述
+childList				如果需要观察目标节点的子节点(新增了某个子节点,或者移除了某个子节点),则设置为true.
+attributes				如果需要观察目标节点的属性节点(新增或删除了某个属性,以及某个属性的属性值发生了变化),则设置为true.
+characterData			如果目标节点为characterData节点(一种抽象接口,具体可以为文本节点,注释节点,以及处理指令节点)时,也要观察该节点的文本内容是否发生变化,则设置为true.
+subtree					除了目标节点,如果还需要观察目标节点的所有后代节点(观察目标节点所包含的整棵DOM树上的上述三种节点变化),则设置为true.
+attributeOldValue	
+在attributes				属性已经设为true的前提下,如果需要将发生变化的属性节点之前的属性值记录下来(记录到下面MutationRecord对象的oldValue属性中),则设置为true.
+
+characterDataOldValue	在characterData属性已经设为true的前提下,如果需要将发生变化的characterData节点之前的文本内容记录下来
+						(记录到下面MutationRecord对象的oldValue属性中),则设置为true.
+attributeFilter			一个属性名数组(不需要指定命名空间),只有该数组中包含的属性名发生变化时才会被观察到,其他名称的属性发生变化后会被忽略.
+
+var $container = $('#container');
+$container.scroll();
+
+var MutationObserver = window.MutationObserver || window.webKitMutationObserver || window.mozMutationObserver,
+observer = new MutationObserver(function(mutations) {
+	mutations.forEach(function(mutation) {
+		console.log(mutation);
+	});
+}),
+config = {
+	attributes : true,
+	childList : true,
+	charaterData : true,
+	subtree : true
+};
+observer.observe($container[0], config);
+
+针对ie10-
+DOMAttrModified：	跟踪 DOM 节点属性的变化;
+DOMCharacterDataModified：	DOM 节点字符数据的变化;
+DOMNodeInserted：	DOM 新节点被插入到给定的父节点;
+DOMNodeInsertedIntoDocument：	DOM 节点被直接或随着祖先节点而插入;
+DOMNodeRemoved：	DOM 节点被从父节点删除;
+DOMNodeRemovedFromDocument：	DOM 节点被直接或跟随祖先节点被删除;
+DOMSubtreeModified：	DOM 元素或文档变化。
+
+DOMSubtreeModified能完美解决，DOMNodeInserted和DOMNodeRemoved都会触发DOMSubtreeModified，所以给container绑定DOMSubtreeModified即可，在
+chrome、ff下表现与ie不一致，如滚动container，并且修改container上的attr，此时，chrome、ff下只会触发一次，而ie会触发多次。
+
+2016-8-31	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ff开发api
+https://developer.mozilla.org/en-US/docs/Web
+
+2016-9-8	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+校验js  getBoundingClientRect在ie和其他浏览器差别
+ie10以上，和chrome没有差别，都可以正常获取6个参数，并且不是以2pxX2px为起始点
+高版本ie已经没有区别，并且获取的width和height都包括border和padding的像素！！！！！！！！！！！！！！
+而jquery获取width和height都不包括border和padding的像素！！！！！！！！！！！！！！
+1、如果浏览器缩放，获取right、left是距离dom到浏览器可视边界的距离，而不是实际距离，同理，top和bottom也是如此
+
+2016-9-8	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+替换checkbox、radio样式
+$(document.body).on('dblclick', 'input[type="checkbox"],input[type="radio"]', function() {
+	// 解决IE下 checkbox、radio双击延迟问题
+	if(window.ActiveXObject || 'ActiveXObject' in window) {
+		$(this).click();
+	}
+});
+
+html:
+<div class="mt10 ml10">
+	<span>修改样式后的checkbox：</span>
+	<label class="checkbox" for="value1">
+		<input type="checkbox" id="value1"/>
+		<span></span>
+		<span>value1</span>
+	</label>
+	<label class="checkbox" for="value2">
+		<input type="checkbox" id="value2"/>
+		<span></span>
+		<span>value2</span>
+	</label>
+</div>
+<div class="mt10 ml10">
+	<span>修改样式后的radio：</span>
+	<label class="radio" for="value3">
+		<input type="radio" id="value3" name="sex"/>
+		<span></span>
+		<span>value3</span>
+	</label>
+	<label class="radio">
+		<input type="radio" id="value4" name="sex"/>
+		<span></span>
+		<span>value4</span>
+	</label>
+</div>
+
+css:
+.checkbox,.radio {position: relative; cursor: pointer;}
+.checkbox input[type="checkbox"],.radio input[type="radio"] {visibility: hidden;}
+.checkbox:hover input + span {background-color: #00a4ff;}
+.checkbox input + span {
+	display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 1px solid #00a4ff;
+    position: absolute;
+    left: 0;
+    border-radius: 3px;
+    background-color: #fff;
+}
+.checkbox input:checked + span:before {
+	content: "\2714";
+    position: absolute;
+    color: #00a4ff;
+    top: -6px;
+    left: 0px;
+    font-size: 20px;
+    font-weight: bold;
+}
+.checkbox:hover input:checked + span:before {color: #fff;}
+.radio input + span {
+	position: absolute;
+    left: 0;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid #00a4ff;
+}
+.radio input:checked + span:before {
+	content: "";
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #00a4ff;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+}
+
+2016-9-8	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+html 层级覆盖要加position: relative、absolute、fixed
+否则，z-index无效
+
+2016-9-8	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+js shadow dom
+
+2016-9-9
+ps
+1、要设置图片背景色为透明，需要先解锁图层，然后用钢笔删除背景(选中区域-->ctrl+enter-->ctrl+delete)
+2、抠图	矩形选框工具-->ctrl+c-->ctrl+n-->ctrl+v
+
+2016-9-12	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+js	display:none的dom宽高都是0，要正确获取宽高，display不能设置为none
+
+2016-9-18	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+js target.offsetParent
+返回最近的一个父级元素A，并且该元素A position值必须是relative、absolute、fixed其中一个，
+另外如果target或父级元素display:none，那么offsetParent返回null。
+
+2016-9-19	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+css	outline
+在浏览器里，当鼠标点击或使用Tab键让一个链接或者一个radio获得焦点的时候，该元素将会被一个轮廓虚线框围绕。这个轮廓虚线框就是 outline
+而如果想去掉影响美观的Tab上的轮廓线条，outline属性可如下设置：
+.active-tab { outline: none; ...... /* other properties */}
+直到最新的IE7 beta2，MS的IE还不支持 outline CSS属性，不过IE为HTML元素扩展了一个 hideFoucs 属性，所有能获得焦点的元素如果添加 hideFoucs="true" 属性，
+那么它们获得焦点时虚线框将被不出现。比如MSDN里的例子:
+<button>button with rectangle</button>
+<!-- 其实hideFocus="false"同hideFocus="true"一样的效果，IE只要发现存在hideFocus属性即生效，这样写是为了兼 容XHTML的属性必须有值的规范 -->
+outline 不会象border那样影响元素的尺寸或者位置
+
+2016-9-20	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+css	width	100%
+1、自身没有设置position:absolute时，width以父级元素中display:block或inline-block为基准，如果都没有找到，则以body为基准
+2、自身设置了position:absolute，如果父级元素A设置了position:relative或absolute
+2.1）如果A设置display:block或inline-block，那么width以A为基准
+2.2）如果A的display不是block或inline-block，那么需要往下层查找，如果找到元素B，以B的width为基准
+2.3）如果元素B也没有找到，那么直接以最近的父级元素的width为基准
+
+2016-9-20	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+js	document.querySelectorAll	遍历文档中所有符合css规则的dom	nodeList
+<div id="test">
+	<div class="outer">1
+		<div class="inner">1-1</div>
+	</div>
+</div>
+1、document.querySelectorAll('#test div div')
+	遍历文档中所有符合css规则 div div的dom,也就是说只要符合该规则的dom(div.inner)都会被选中,length=1
+2、document.querySelector('#test').querySelectorAll('div div')
+	首先找到#test，然后在#test下的所有子元素中查找符合css样式规则div div的dom，即div.outer div.inner
+	该方法和jquery.find('#test').find('div div')不同，该方法是在文档全局查找，只要在#test下，即div.outer也符合规则，所以被选中，
+	find是在#test下查找div div,只有div.inner
+	
+2016-9-20	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+css table table-cell
+兼容性:chrome里面不需要设置vertial-align，但ff里面需要显示的设置，否则样式有问题
+<div class="inline-block table-cell bblue1 vm">123456123132131</div>
+<div class="table-cell borange1 vb">
+	123我今天的心情很不错1123我今天的心情很不错1123我今天的心情很不错1123我今天的心情很不错1123我今天的心情很不错1123我今天的心情很不错1
+	123我今天的心情很不错1123我今天的心情很不错1123我今天的心情很不错1123我今天的心情很不错1123我今天的心情很不错1123我今天的心情很不错1
+</div>
+当一个元素内部分为左右两侧，且至少有一个宽度是固定的，那么可以使用display: table，内部使用display: table-cell.
+此时子元素vertical-align(top、middle、bottom)有效，表现与<table><tr><td>一致
+
+2016-9-21	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+css	direction	text-align
+父级设置direction,子元素direction也会继承父级;chrome下text-align会默认设置text-align:start，并且该值根据direction的值而定;!!!!!!!!
+1）direction: ltr,start-->left
+2）direction: rtl,start-->right
+最好在父级也设置text-align: left|center|right，解决兼容问题
+<p class="rtl p1">
+	<span>span1</span>
+	<span>span2</span>
+</p>
+<p class="rtl p2">
+	<button>button1</button>
+	<button>button2</button>
+</p>
+1、p.p1设置了direction: rtl
+	1.1）如果p.p1下面的span都没有设置display:inline-block，那么p.p1下的两个span不会受direction影响
+	1.2）如果p.p1下面的span至少有一个display:inline-block,那么两个span的显示顺序是span2 span1
+2、p.p2设置了direction: ltr
+	由于button默认display: inline-block，所以显示为button2 button1
+	
+2016-9-21	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+$.fn.extend({
+	Mask : function() {
+		var $this = this,
+		id = 'data-mask-' + ZUtil.v.split('\.').join('-'),
+		body = document.body,
+		$mask = $('#' + id),
+		$cover = $mask.find('.cover');
+		
+		if(!$mask.length) {
+			var html = '<div class="mask absolute" id="' + id + '">'
+						+ '<div class="cover"></div>'
+					+ '</div>';
+			$(body).append(html);
+			$mask = $('#' + id);
+			$cover = $mask.find('.cover');
+			$(window).bind('resize', move);
+		}
+
+		// 1、给$mask绑定target，即需要覆盖的dom
+		$mask.data('target', $this);
+		function move() {
+			// 2、取出需要覆盖的dom
+			// 之所以执行1、2这两个步骤，是因为resize触发时，只会执行第一次调用Mask()时绑定的$this,而实际是需要在触发resize时$this是当前调用Mask()的dom,
+			// 所以需要在每次Mask()时重新绑定target
+			var $target = $mask.data('target'),
+			rect = ZUtil.getRect($target),
+			offsetObj = ZUtil.getOffset($target),
+			bodyHeight = body.clientHeight,
+			bodyWidth = body.clientWidth,
+			height = rect.height,
+			width = rect.width,
+			top = offsetObj.offsetTop,
+			left = offsetObj.offsetLeft,
+			right = bodyWidth - left - width,
+			bottom = bodyHeight - top - height,
+			coverBorderWidth = height > width ? height : width;
+			$mask.css({
+				width : width,
+				height : height,
+				top : 0,
+				right : 0,
+				bottom : 0,
+				left : 0,
+				'border-top' : top + 'px solid #000',
+				'border-right' : right + 'px solid #000',
+				'border-bottom' : bottom + 'px solid #000',
+				'border-left' : left + 'px solid #000'
+			});
+			
+			$cover.css({
+				top : -(coverBorderWidth / 2),
+				left : -(coverBorderWidth / 2),
+				'border-width' : coverBorderWidth / 2
+			});
+		}
+		move();
+	}
+});
+
+2016-9-22	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+js	A && true，如果A等于(undefined、null、false、0、'')中任何一个值，得到的值=A
+
+2016-9-22	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+手机端web	页面A打开页面B，要想B关闭时触发时间，需要添加pagehide事件
+
+2016-9-22	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+css visibility:hidden与display:none区别
+<div style="visibility: hidden;" class="div1">
+	<div style="visibility: visible" class="div2">1</div>
+</div>
+<div style="display: none;" class="div3">
+	<div style="display: block;" class="div4">23</div>
+</div>
+1、visibility:hidden不会重绘,并且div2会显示出来，没有株连性，并且div1会占据文档空间，div1设置为visibility: visible时，也不会重绘，不会引起回流
+2、display: none引起浏览器重绘，div4无法显示，具有株连性，div3不会占据文档空间。
+
+当一个元素的外观的可见性visibility发生改变的时候，重绘(repaint)也随之发生，但是不影响布局。类似的例子包括：outline, visibility, or background color
+重绘的代价是高昂的，因为浏览器必须验证DOM树上其他节点元素的可见性。而回流更是性能的关键因为其变化涉及到部分页面（或是整个页面）的布局。
+一个元素的回流导致了其所有子元素以及DOM中紧随其后的祖先元素的随后的回流
+
+一个元素的回流导致了其所有子元素以及DOM中紧随其后的祖先元素的随后的回流。
+position: absolute与static之间切换会回流
+
+2016-9-22	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+css	
+1、overflow:hidden用中文理解就是“溢出隐藏”，加上height:0，只要是一般的非inline水平元素，则元素内部所有子孙都应该是不可见的。
+2、height:0和overflow:hidden组合隐藏“失效”的条件如下：祖先元素没有position:relative/absolute/fixed声明，同时内部子元素应用了position:absolute/fixed声明,
+      不管祖先元素display:block/inline-block/inline
+3、position: absolute元素溢出overflow: hidden元素的时候，如果其第一个含有position属性(static除外)的祖先元素（一直到body）是
+  overflow: hidden元素祖先元素的时候，则不隐藏；否则，隐藏。
+<p>
+	<a style="height: 0; overflow: hidden;">
+		<img src="..." style="position: absolute;" />
+	</a>
+</p>
+
+body
+    height: 0; overflow: hidden;
+        position: absolute; /* 不会被隐藏 */
+        
+position: relative;
+    height: 0; overflow: hidden;
+        position: absolute; /* 不会被隐藏 */
+        
+height: 0; overflow: hidden;  position: relative;
+    position: absolute; /* 会被隐藏 */
+    
+height: 0; overflow: hidden;
+    position: relative;
+        position: absolute; /* 会被隐藏 */
+
+2016-9-22	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+css :root
+:root 选择器匹配文档根元素。
+在 HTML 中，根元素始终是 html 元素。
+所有主流浏览器均支持 :root 选择器，除了 IE8 及更早的版本。
+
+2016-9-22	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+css animation	暂停	IE10+
+    -webkit-animation-play-state: paused;
+    animation-play-state: paused;
+
+2016-9-22	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+css	will-change:transform,硬件加速
+尽可能hover的时候添加该css属性，避免cpu卡死    
+
+2016-9-22	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+html	<input type="file" accept="image/*"/>	
+在chrome有些版本下，点击上传文件弹窗特别慢,解决方案：将image/*改为image/jpg,image/jpeg,image/png
+
+2016-9-26	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+js		ie	判断时使用!+[1,]能判断是否是ie浏览器，和标准的toString不一样，转换!NaN,只适用于ie8或以下版本
+兼容方法navigator.userAgent.indexOf('.NET') != -1
+
+2016-9-27	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+css		line-height、font-size等设置百分比与em区别
+百分比:继承父级大小乘以百分比
+em:自身大小乘以em
+
+2016-9-27	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+css		当内容为空时修饰dom，但是添加了before或者after伪类时，:empty无效
+html:
+<div class="empty"></div>
+css:
+.empty:empty {
+	display: table;
+}
+.empty:empty:after {
+	content: attr(data-empty);
+	display: table-cell;
+	text-align: center;
+	vertical-align: middle;
+}
+这里列出常用content的值:
+1、content:"插入的文章"，或者content:none不插入内容 html
+2、可以使用content属性的open-quote属性值和close-quote属性值在字符串两边添加诸如括号、单引号、双引号之类的嵌套文字符号。
+open-quote用于添加开始的文字符号，close-quote用于添加结束的文字符号。
+	<h1>这是h1</h1>
+	<h2>这是h2</h2>
+	h1{
+	    quotes:"(" ")";  /*利用元素的quotes属性指定文字符号*/
+	}
+	h1::before{
+	    content:open-quote;
+	}
+	h1::after{
+	    content:close-quote;
+	}
+	h2{
+	    quotes:"\"" "\"";  /*添加双引号要转义*/
+	}
+	h2::before{
+	    content:open-quote;
+	}
+	h2::after{
+	    content:close-quote;
+	}
+3、content属性可以直接利用attr获取元素的属性，将其插入到对应位置。
+	<a href="http:///www.ido321.com">这是链接&nbsp;&nbsp;</a>
+	h3::after{
+	    content:url(http://ido321.qiniudn.com/wp-content/themes/yusi1.0/img/new.gif)
+	}
+4、content属性可以直接利用attr获取元素的属性，将其插入到对应位置。
+	<a href="http:///www.ido321.com">这是链接&nbsp;&nbsp;</a>
+	a:after{
+	    content:attr(href);
+	}
+5、利用content的counter属性针对多个项目追加连续编号
+	<h1>大标题</h1>
+	<p>文字</p>
+	<h1>大标题</h1>
+	<p>文字</p>
+	<h1>大标题</h1>
+	<p>文字</p>
+	<h1>大标题</h1>
+	<p>文字</p>
+	h1:before{
+	    content:counter(my)'.';
+	}
+	h1{
+	    counter-increment:my;
+	}
+6、利用content(计数器名，编号种类)格式的语法指定编号种类，编号种类的参考可以依据ul的list-style-type属性值。利用上述的html，css修改如下
+	<h1>大标题</h1>
+	<p>文字</p>
+	<h1>大标题</h1>
+	<p>文字</p>
+	<h1>大标题</h1>
+	<p>文字</p>
+	<h1>大标题</h1>
+	<p>文字</p>
+	
+	h1:before{
+	    content:counter(my,upper-alpha);
+	    color:red;
+	    font-size:42px;
+	}
+	h1{
+	    counter-increment:my;
+	}
+7、在示例的输出中可以发现，p的编号是连续的。如果对于每一个h1后的三个p重新编号的话，可以使用counter-reset属性重置
+	<h1>大标题</h1>
+	<p>文字1</p>
+	<p>文字2</p>
+	<p>文字3</p>
+	<h1>大标题</h1>
+	<p>文字1</p>
+	<p>文字2</p>
+	<p>文字3</p>
+	<h1>大标题</h1>
+	<p>文字1</p>
+	<p>文字2</p>
+	<p>文字3</p>
+	h1::before{
+	    content:counter(h)'.';
+	}
+	h1{
+	    counter-increment:h;
+	    counter-reset:p;
+	}
+	p::before{
+	    content:counter(p)'.';
+	    margin-left:40px;
+	}
+	p{
+	    counter-increment:p;
+	}
+	
+2016-9-27	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+html	定时跳转或刷新页面
+<meta http-equiv="refresh" content="5;url='http://www.baidu.com'">
+
+
+2016-9-27	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+css		设置cursor图片加default
+cursor: url(../../../qm/assets/admin/images/openhand.cur) 8 8, default !important;
+
+如果不需要考虑IE浏览器，IE浏览器都不支持
+.grab { /* 抓 */
+    cursor: -webkit-grab;
+    cursor: -moz-grab;
+    cursor: grab;
+}
+.grabbing { /* 抓住 */
+    cursor: -webkit-grabbing;
+    cursor: -moz-grabbing;
+    cursor: grabbing;
+}
+
+2016-9-27	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+css		inherit和100%区别
+ 父容器height: auto，无论height:100%或者height:inherit表现都是auto
+ 父容器定高height: 100px，无论height:100%或者height:inherit表现都是100px高
+
+	<div class="outer"><div class="height-100"></div></div>
+	<div class="outer"><div class="height-inherit"></div></div>
+	 .outer {
+	    display: inline-block;
+	    height: 200px; width: 40%;
+	    border: 5px solid #cd0000;
+	}
+	.height-100 {
+	    position: absolute;
+	    height: 100%; width: 200px;
+	    background-color: #beceeb;
+	}
+	.height-inherit {
+	    position: absolute;
+	    height: inherit; width: 200px;
+	    background-color: #beceeb;
+	}
+当子元素为绝对定位元素，同时，父容器的position值为static的时候，height:100%和height:inherit的差异就可以明显体现出来了,
+height: 100%会占据剩余高度
+height: inherit完美占据父级元素高度
+
+2016-10-9	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+css3	ie9+
+border: 1px solid currentColor;
+color: red;
+currentColor使用当前文字color颜色
+
+另外如果可以这么设置:
+border-width: 1px;
+border-style: solid;
+那么border默认使用color颜色
+
+2016-10-10	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+css	TABLE
+display: table;
+table-layout: fixed;	让表格布局固定，也就是表格的宽度不是跟随单元格内容多少自动计算尺寸。!!!!!!!!!!!!!!!!!!!!!!
+
+2016-10-10	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+css3
+水平居中的几种方法:
+1、margin: 0 auto;
+2、margin: -(一般宽度); left: 50%
+3、left: 50%; transform: translateX(-50%(自身宽度一半))
+
+2016-10-12	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+<img>	必须通过style设置宽高，否则ff浏览器中会因为src无法加载图片时导致<img>宽高失效
+
+2016-10-12	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+chrome	开发者工具	http://www.admin10000.com/document/6159.html
+ctrl + p	通过文件名关键字查找文件
+ctrl + shift + f	通过文件中关键字查找文件
+ctrl + g	跳转到对应的行数
+ctrl + o	输入如test.js:50，跳转到test.js中第50行
+console控制台中
+	$(css ruler)	相当于document.querySelector
+	$$(css ruler)	相当于document.querySelectorAll
+ctrl + d	同eclipse中ctrl + k
+地址栏输入chrome://version	查看chrome版本信息
+地址栏输入chrome://memory	查看chrome内存使用情况
+按住Alt键，当鼠标箭头变为“+”号后，点击鼠标	多列内容选择
+ctrl + shift + t	按网页关闭顺序由近至远打开
+ctrl + 左键	新窗口打开链接
+ctrl + shift + n	打开隐身窗口
+ctrl + h	查看chrome历史记录
+
+2016-10-18	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+js	NodeList => Array
+var elements = document.querySelectorAll('div');	// NodeList
+var array = [].slice.call(elements);				// Array
+var array = Array.from(elements);					// Array
+
+2016-10-18	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+css
+clip: rect(0, 50px, 50px, 0);	rect四个值分别是top、right、bottom、left
+该属性装饰的dom必须是position: absolute、fixed;
+
+2016-10-20	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+js
+1、function test() {}
+for(var i = 0; i < 1000; i++ ) {
+	test();
+}
+2、for(var i = 0; i < 1000; i++ ) {
+	(functoin() {})();
+}
+经过测试，1和2占用的内存是一样大的
+大致分析：函数式预执行的，执行1000次函数，会创建1000个函数执行空间，并且彼此间地址不同，所以占用的内存是一样大的。
+
+2016-10-24	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+js
+event.clientY	获取鼠标指针位置相对于触发事件的对象的 y坐标
+
+2016-10-24	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+css
+img	宽高不要用inherit，无效
+
+2016-10-26	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ff与ie、chrome表现差异
+<div class="div1"></div>
+<div class="div2 hide"></div>
+.div2 {
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	z-index: 9999;
+}
+.div1绑定mousedown事件，.div2绑定mousemove事件，.div1触发mousedown时$('.div2').removeClass('hide')，此时鼠标一直处于mousedown
+差异:ie和chrome能直接触发.div2的mousemove事件
+ff中.div2无法直接触发mousemove事件
+
+2016-10-27	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+css
+border-box:元素的宽高会将border宽高包含在内,如width: 100px; border: 4px solid red;
+此时$(dom).width()为92
+
+2016-10-27	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+js
+form.reset()	会将表单控件重置为value的值
+如<input type="text" value="1111"/>
+重置后，value=1111
+调用$input.attr('value', '3333')后，再重置，value=3333
+
+2016-11-1	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+css
+top、right、bottom、left无论是否设置transform: rotate(?deg)，都不会影响方向
+
+2016-11-1	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+js
+当dom position: fixed;
+获取getBoundingClientRect(dom不可见)，rect都为0
+
+2016-11-3	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+js
+document.body.clientWidth、clientHeight	获取的是body除去border宽高的宽高，但是要注意，当body首个子元素设置了margin-top，此时clientHeight=body实际高度 - marginTop
+window.innerWidth、window.innerHeight	获取的是浏览器包含滚动条的可视宽高
+document.body.offsetHeight	dom.offsetHeight
+scrollHeight的值不包括scrollbar的高度，而offsetHeight的值包括了scrollbar的高度，如果两个值相等，证明没有滚动条
+
+2016-11-3	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+js
+trigger只支持传递一个参数，function(event, param) {}
+
+2016-11-5	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+css
+position：
+	relative:相对于直接父元素定位，没有脱离文本流
+	absolute:相对于最近一个定位的父元素（relative、absolute、fixed）进行定位，脱离文本流
+	fixed:相对于浏览器窗口进行定位，脱离文本流
+	
+2016-11-10	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+css
+设置了border-radius
+box-shadow: x偏移 y偏移 扩散 边框大小 颜色			border-radius对该属性有效
+outline: 10px solid red					border-radius对该属性无效
+box-shadow还可以设置多个值: 0 0 0 10px red inset, 0 0 0 20px blue, ...
+
+2016-11-11	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+给div内容每行下面加虚线
+<div class="linear">
+	1212313244456454564544564545456465465456
+</div>
+.linear {
+	line-height: 30px;
+    background: linear-gradient(to bottom, #fff 95%, #aaa 95%, #aaa 100%) repeat;
+    /* 该属性值一定要设置在background下方，否则无效 */
+    background-size: 100% 30px;
+    position: relative;
+    /* 因为div.linear和before、文字在z-index=0的面上，所以需要把文字放到最上面，第二层是before，最下面一层才是div.linear
+    	,这里加z-index:-3 < z-index: -2(before) < z-index: 0，但是这里z-index是一个数字就可以 */
+    z-index: -3;
+}
+
+.linear:before {
+	content: '';
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    background: linear-gradient(to right, rgba(0, 0, 0, 0) 6px, #fff 6px);
+    background-size: 10px 100%;
+    z-index: -2;
+}
+效果图
+	121231324445645456454456454545
+	------------------------------
+linear-gradient	默认to-bottom，deg为正时，顺时针旋转
+	6465465456
+	------------------------------
+background-position	截取的是background-size范围内的图片进行位移
+
+2016-11-11	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+背景图片	SVG
+A、
+background-color: #fff;
+background-image: url("data:image/svg+xml;charset=utf8,\
+				%3Csvg version='1.1' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60' %3E\
+					%3Crect width='30' height='30' x='30' y='0' fill='rgba(0, 0, 0, .05)' /%3E\
+					%3Crect width='30' height='30' x='0' y='30' fill='rgba(0, 0, 0, .05)' /%3E\
+				%3C/svg%3E");
+background-size: 50px 50px;
+url	属性值，如果换行加\，最外层必须用"而不是'，否则在IE中无法正常显示，另外必须用charset=utf8或者utf-8，%3C表示<，%3E表示>
+viewBox	表示视野范围，在一个x轴偏移0，y轴偏移0，宽高60px范围内观察
+background-size	相当于svg的viewBox，会进行缩放
+
+如果不需要考虑背景色是透明的，直接用如下css
+B、
+background: #fff;
+background-image: linear-gradient(45deg, tan 26%, transparent 0),
+					linear-gradient(225deg, tan 26%, transparent 0),
+					linear-gradient(45deg, tan 25%, transparent 0),
+					linear-gradient(225deg, tan 25%, transparent 0);
+background-size: 60px 60px;
+background-position: 0 0,0 0,30px -30px, 30px -30px;
+
+两种情况对比:
+A不需要考虑颜色是否有透明度，并且支持IE9+
+B这种情况颜色不能有透明度，否则有锯齿，并且linear-gradient必须要IE10+，在ff中看着也有问题
+综上，直接使用svg是最佳选择
+
+2016-11-17	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+css		垂直居中
+.vam:before {
+	content: '';
+	vertical-align: middle;
+	display: inline-block;
+	height: 100%;
+}
+
+2016-11-21	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+java	spring获取文件头信息	MultipartFile file
+
+private static String JPG_TYPE = "ffd8ffe0/ffd8ffe1";
+private static String JPEG_TYPE = "ffd8ffe0/ffd8ffe1";
+private static String BMP_TYPE = "ffd8ffe0/ffd8ffe1";
+private static String PNG_TYPE = "89504e47";
+private static String GIF_TYPE = "47494638";
+private static String ALL_TYPE = "*";
+private static Map<String, String> imageMap = new HashMap<String, String>();
+static {
+	imageMap.put("jpg", JPG_TYPE);
+	imageMap.put("jpeg", JPEG_TYPE);
+	imageMap.put("bmp", BMP_TYPE);
+	imageMap.put("png", PNG_TYPE);
+	imageMap.put("gif", GIF_TYPE);
+}
+
+public Map<String, Object> ImageIsValid(MultipartFile file,
+		@RequestParam(defaultValue = "image/jpg,image/jpeg,image/png", required = false) String accept) throws Exception {
+	return fileTypeIsValid(file, accept);
+}
+
+// 获取文件头信息
+public static String getHeader(MultipartFile file) throws Exception {
+	byte header[] = new byte[4];
+	int read = file.getInputStream().read(header);
+	StringBuilder stringBuilder = new StringBuilder(); 
+	String imgType = "";
+	
+	if (read > 0) {
+		if (header == null || header.length <= 0) {      
+			return null;
+		}      
+		for (int i = 0; i < header.length; i++) {      
+			int v = header[i] & 0xFF;      
+			String hv = Integer.toHexString(v);      
+			if (hv.length() < 2) {      
+				stringBuilder.append(0);      
+			}      
+			stringBuilder.append(hv);      
+		} 
+		// 文件头信息
+		imgType = stringBuilder.toString();      
+	}
+	
+	return imgType.toLowerCase();
+}
+
+// 检测文件类型是否有效
+public static Map<String, Object> fileTypeIsValid(MultipartFile file, String accept) throws Exception {
+	Map<String, Object> result = new HashMap<String, Object>();
+	if(!StringUtils.isEmpty(accept)) {
+		if(ALL_TYPE.equals(accept.trim())) {
+			result.put("success", false);
+			result.put("msg", "accept参数不能为[*]，chrome和safari会出现上传延迟");
+		} else {
+			accept = accept.replace("image/", "").replace(" ", "");
+			String imgType = getHeader(file);
+			String accepts[] = accept.split(",");
+			boolean valid = false;
+			
+			for(int i = 0, length = accepts.length; i < length; i++) {
+				String type = imageMap.get(accepts[i]);
+				if(type.indexOf(imgType) != -1) {
+					valid = true;
+					break;
+				}
+			}
+			if(valid) {
+				result.put("success", true);
+			} else {
+				result.put("success", false);
+				result.put("msg", "图片类型只能是[" + accept.replace(",", ", ") + "]的格式");
+			}
+		}
+	} else {
+		result.put("success", false);
+		result.put("msg", "请选择允许上传的图片类型");
+	}
+	return result;
+}
+
+2016-11-21	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+h5 api	oninput		IE9+、ff、chrome
+$('input').on('input', callback)	监听input框
+
+2016-11-24	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+html
+dom元素设置overflow，如overflow-y: auto，dom元素内的子元素无法在dom外显示
+
+2016-11-24	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+jquery
+hover : function(fnOver, fnOut) {
+	return this.mouseenter(fnOver).mouseleave(fnOut || fnOver);
+}
+
+2016-11-24	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+svg	css
+stroke-dashoffset = stroke-dasharray时，刚好不显示轮廓
+
+2016-11-28	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+针对ie浏览器
+需要设置$.ajaxSetup({
+	cache : false
+});
+
+2016-11-30	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+css
+<div class="container">
+	<div id="left-body" class="pull-left w300 h300"></div>
+	<div id="right-body" class="ml300">
+		<div class="head"></div>
+		<div class="table-wrapper">
+			<table></table>
+		</div>
+	</div>
+</div>
+
+<style>
+	.w300 {width: 300px;}
+	.h300 {height: 300px;}
+	ml300 {margin-left: 300px;}
+</style>
+
+#right-body中包含一个table，此时table至少距离#right-body顶部300px，如果.head高度>300px，table距离顶部距离会更大，
+要解决这个问题，有如下方案：
+1、#right-body添加.pull-left，但此时必须要知道.container的宽度，#right-body的宽度=.container的宽度 - #left-body的宽度
+2、直接给.table-wrapper添加.pull-left
+第2种方式最简单
+
+这个特性被用作解决浮动clearfix
+
+2016-12-3	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+js
+任何元素绑定的mousemove事件都不能返回false,否则会阻止body的选中事件
+
+2016-12-8	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+js	AJAX	PROGRESS
+ajax要监听progress，必须是异步，如果是多文件上传，可以在readyState == 4 && status == 200内递归
