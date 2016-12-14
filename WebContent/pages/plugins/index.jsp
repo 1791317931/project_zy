@@ -1,54 +1,60 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.util.Date" %>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://"
+			+ request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
+%>
 <!DOCTYPE html>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>plugins</title>
 
-<link  rel="stylesheet" href="../../css/index.css?<%=new Date().getTime()%>"/>
+<link  rel="stylesheet" href="<%=basePath%>/css/index.css?<%=new Date().getTime()%>"/>
 
-<link  rel="stylesheet" href="../../css/skin/base/tip.css?<%=new Date().getTime()%>"/>
-<%-- <link  rel="stylesheet" href="../../css/skin/orange/tip.css?<%=new Date().getTime()%>"/> --%>
-<%-- <link  rel="stylesheet" href="../../css/skin/blue/tip.css?<%=new Date().getTime()%>"/> --%>
-<link  rel="stylesheet" href="../../css/skin/green/tip.css?<%=new Date().getTime()%>"/>
+<link  rel="stylesheet" href="<%=basePath%>/css/skin/base/tip.css?<%=new Date().getTime()%>"/>
+<%-- <link  rel="stylesheet" href="<%=basePath%>/css/skin/orange/tip.css?<%=new Date().getTime()%>"/> --%>
+<%-- <link  rel="stylesheet" href="<%=basePath%>/css/skin/blue/tip.css?<%=new Date().getTime()%>"/> --%>
+<link  rel="stylesheet" href="<%=basePath%>/css/skin/green/tip.css?<%=new Date().getTime()%>"/>
 
-<link  rel="stylesheet" href="../../css/skin/base/progress-bar.css?<%=new Date().getTime()%>"/>
-<%-- <link  rel="stylesheet" href="../../css/skin/green/progress-bar.css?<%=new Date().getTime()%>"/> --%>
-<%-- <link  rel="stylesheet" href="../../css/skin/blue/progress-bar.css?<%=new Date().getTime()%>"/> --%>
-<link  rel="stylesheet" href="../../css/skin/orange/progress-bar.css?<%=new Date().getTime()%>"/>
+<link  rel="stylesheet" href="<%=basePath%>/css/skin/base/progress-bar.css?<%=new Date().getTime()%>"/>
+<%-- <link  rel="stylesheet" href="<%=basePath%>/css/skin/green/progress-bar.css?<%=new Date().getTime()%>"/> --%>
+<%-- <link  rel="stylesheet" href="<%=basePath%>/css/skin/blue/progress-bar.css?<%=new Date().getTime()%>"/> --%>
+<link  rel="stylesheet" href="<%=basePath%>/css/skin/orange/progress-bar.css?<%=new Date().getTime()%>"/>
 
-<link  rel="stylesheet" href="../../css/skin/base/show-stage.css?<%=new Date().getTime()%>"/>
+<link  rel="stylesheet" href="<%=basePath%>/css/skin/base/show-stage.css?<%=new Date().getTime()%>"/>
 
-<link  rel="stylesheet" href="../../css/skin/base/simulate-scroll.css?<%=new Date().getTime()%>"/>
-<link  rel="stylesheet" href="../../css/skin/blue/simulate-scroll.css?<%=new Date().getTime()%>"/>
+<link  rel="stylesheet" href="<%=basePath%>/css/skin/base/simulate-scroll.css?<%=new Date().getTime()%>"/>
+<link  rel="stylesheet" href="<%=basePath%>/css/skin/blue/simulate-scroll.css?<%=new Date().getTime()%>"/>
 
-<link  rel="stylesheet" href="../../css/skin/base/record.css?<%=new Date().getTime()%>"/>
+<link  rel="stylesheet" href="<%=basePath%>/css/skin/base/record.css?<%=new Date().getTime()%>"/>
 
-<link  rel="stylesheet" href="../../css/skin/base/switch.css?<%=new Date().getTime()%>"/>
+<link  rel="stylesheet" href="<%=basePath%>/css/skin/base/switch.css?<%=new Date().getTime()%>"/>
 
-<link  rel="stylesheet" href="../../css/skin/base/select.css?<%=new Date().getTime()%>"/>
+<link  rel="stylesheet" href="<%=basePath%>/css/skin/base/select.css?<%=new Date().getTime()%>"/>
 
-<link  rel="stylesheet" href="../../css/skin/base/mask.css?<%=new Date().getTime()%>"/>
+<link  rel="stylesheet" href="<%=basePath%>/css/skin/base/mask.css?<%=new Date().getTime()%>"/>
 
-<link  rel="stylesheet" href="../../css/skin/base/circle-progress.css?<%=new Date().getTime()%>"/>
-<%-- <link  rel="stylesheet" href="../../css/skin/orange/circle-progress.css?<%=new Date().getTime()%>"/> --%>
-<link  rel="stylesheet" href="../../css/skin/green/circle-progress.css?<%=new Date().getTime()%>"/>
-<%-- <link  rel="stylesheet" href="../../css/skin/blue/circle-progress.css?<%=new Date().getTime()%>"/> --%>
+<link  rel="stylesheet" href="<%=basePath%>/css/skin/base/circle-progress.css?<%=new Date().getTime()%>"/>
+<%-- <link  rel="stylesheet" href="<%=basePath%>/css/skin/orange/circle-progress.css?<%=new Date().getTime()%>"/> --%>
+<link  rel="stylesheet" href="<%=basePath%>/css/skin/green/circle-progress.css?<%=new Date().getTime()%>"/>
+<%-- <link  rel="stylesheet" href="<%=basePath%>/css/skin/blue/circle-progress.css?<%=new Date().getTime()%>"/> --%>
 
-<link  rel="stylesheet" href="../../css/skin/base/horizontal-slide.css?<%=new Date().getTime()%>"/>
+<link  rel="stylesheet" href="<%=basePath%>/css/skin/base/horizontal-slide.css?<%=new Date().getTime()%>"/>
 
-<link  rel="stylesheet" href="../../css/skin/base/linear-gradient.css?<%=new Date().getTime()%>"/>
+<link  rel="stylesheet" href="<%=basePath%>/css/skin/base/linear-gradient.css?<%=new Date().getTime()%>"/>
 
-<link  rel="stylesheet" href="../../css/skin/base/clear.css?<%=new Date().getTime()%>"/>
+<link  rel="stylesheet" href="<%=basePath%>/css/skin/base/clear.css?<%=new Date().getTime()%>"/>
 
-<link  rel="stylesheet" href="../../css/skin/base/star.css?<%=new Date().getTime()%>"/>
+<link  rel="stylesheet" href="<%=basePath%>/css/skin/base/star.css?<%=new Date().getTime()%>"/>
 
-<link  rel="stylesheet" href="../../css/skin/base/clip-image.css?<%=new Date().getTime()%>"/>
+<link  rel="stylesheet" href="<%=basePath%>/css/skin/base/clip-image.css?<%=new Date().getTime()%>"/>
 
-<link  rel="stylesheet" href="../../css/skin/base/message-tip.css?<%=new Date().getTime()%>"/>
+<link  rel="stylesheet" href="<%=basePath%>/css/skin/base/message-tip.css?<%=new Date().getTime()%>"/>
 
-<link  rel="stylesheet" href="../../css/skin/base/upload-file.css?<%=new Date().getTime()%>"/>
+<link  rel="stylesheet" href="<%=basePath%>/css/skin/base/upload-file.css?<%=new Date().getTime()%>"/>
 
 <style>
 	.container {
@@ -248,9 +254,12 @@
 	.title {font-size: 18px;}
 </style>
 
-<script type="text/javascript" src="../../js/jquery.js?<%=new Date().getTime()%>"></script>
-<script type="text/javascript" src="../../js/plugins/index.js?<%=new Date().getTime()%>"></script>
-<script type="text/javascript" src="../../js/plugins/test.js?<%=new Date().getTime()%>"></script>
+<script type="text/javascript" src="<%=basePath%>/js/jquery.js?<%=new Date().getTime()%>"></script>
+<script type="text/javascript" src="<%=basePath%>/js/plugins/index.js?<%=new Date().getTime()%>"></script>
+<script type="text/javascript" src="<%=basePath%>/js/plugins/test.js?<%=new Date().getTime()%>"></script>
+<script type="text/javascript">
+	var ctx = '<%=basePath%>';
+</script>
 </head>
 <body class="pt20 weiruan">
 	<div class="container">

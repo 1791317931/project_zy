@@ -213,7 +213,8 @@ $(function() {
 	
 	$uploadFile = $('#upload');
 	$uploadFile.UploadFile({
-		multiple : true
+		multiple : true,
+		uploadUrl : ctx + 'uploadAction!upload.action'
 	});
 	$('#to-upload-file').bind('click', function() {
 		$uploadFile.trigger('show');

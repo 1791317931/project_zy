@@ -2823,7 +2823,7 @@
 				mode : 'modal',
 				// 相应文件类型提示信息
 				tip : '使用不大于 600M的rmvb,rm,mkv,mp4,3gp,avi,mov,flv,wma,mpg,wmv文件',
-				fileName : 'myfiles',
+				fileNam : 'file',
 				// 默认一次只能上传一个文件，为true时，填加多个input[type="input"]
 				multiple : false,
 				// 默认0.5秒更新一次上传速度
