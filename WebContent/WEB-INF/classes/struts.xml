@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE struts PUBLIC  
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"  
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.i18n.encoding" value="utf-8"></constant>
+	<constant name="struts.custom.i18n.resources" value="applicationResources"></constant>
+	<!-- 是否允许缓存静态资源 -->
+	<constant name="struts.multipart.saveDir" value="temp"></constant>
+	<constant name="struts.multipart.maxSize" value="629145600"></constant>
+
+	<package name="default" extends="struts-default">
+		<action name="uploadAction" class="com.zy.action.UploadAction">
+			<interceptor-ref name="defaultStack"></interceptor-ref>
+		</action>
+
+	</package>
+</struts> 

@@ -37,7 +37,7 @@ $(function() {
 	
 	// 图片裁剪
 	$('.clip-image-container').ClipImage({
-		mode : 'circle',
+//		mode : 'circle',
 //		fixed : true
 		url : 'xxx'
 //		errorTypeCallback : 'xxx'
