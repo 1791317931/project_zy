@@ -596,7 +596,7 @@
 				// 默认压缩图片
 				compress : true,
 				// 不能设置为image/*	否则个别电脑上chrome上传文件特别慢
-				accept : 'image/jpg,image/jpeg,image/png,image/bmp',
+				accept : 'image/jpg,image/jpeg,image/png',
 				// 默认1M
 				size : 1,
 				// 图片超出最大尺寸后，由于提示信息可能不同，所以调用外部方法
@@ -621,9 +621,20 @@
 				 * 通过该方法获取ajax data数据	$form	file
 				 * 这里type=file取值时最好直接用file,否则上传的图片过大时会有bug
 				 */
-				getFormData : function($form, file) {
+				getFormData : function($form, $files) {
+					// 先校验文件
+					var file = $files[0].files[0] || $files[1].files[0],
+					formData = new FormData();
+					
+					if(file) {
+						formData.append(name, file);
+					} else {
+						// 没有找到文件，返回false
+						emptyFileCallback();
+						return false;
+					}
+					
 					var $inputs = $form.find('input'),
-					formData = new FormData(),
 					length = $inputs.length;
 					for(var i = 0; i < length; i++) {
 						var $input = $inputs.eq(i),
@@ -635,12 +646,6 @@
 								value = parseInt(value);
 							}
 							formData.append(name, value);
-						} else {
-							if(!file || !$input[0].files.length) {
-								emptyFileCallback();
-								return false;
-							}
-							formData.append(name, file);
 						}
 					}
 					return formData;
@@ -686,8 +691,10 @@
 					$previewContainer = $container.find(previewContainerSelector),
 					$sourceImage = $container.find(sourceImageSelector),
 					$previewImage = $container.find(previewImageSelector),
-					$form = $container.find('form'),
-					$file = $form.find('input[data-name="file"]'),
+					$form = $container.find('.data-form'),
+					// 文件表单
+					$fileForms,
+					$files,
 					$x = $form.find('input[data-name="x"]'),
 					$y = $form.find('input[data-name="y"]'),
 					// 裁剪区域	宽高
@@ -696,7 +703,6 @@
 					// 图片压缩后	宽高
 					$fw = $form.find('input[data-name="fw"]'),
 					$fh = $form.find('input[data-name="fh"]'),
-					sourceFile,
 					$clipContainer,
 					$clipRect,
 					$pointContainer,
@@ -710,16 +716,20 @@
 					originY;
 					
 					if(!$form.length) {
-						$container.append('<form class="hide"></form>');
-						$form = $container.find('form');
+						$container.append('<form class="hide data-form"></form>');
+						$form = $container.find('.data-form');
 					}
 					
-					if(!$file.length) {
-						$form.append('<input type="file" name="file" class="hide" accept="' + accept + '" data-name="file"/>');
-						$file = $form.find('input[data-name="file"]');
-					} else {
-						$file.attr('accept', accept);
-					}
+					var fragment = '<form class="hide file-form">'
+									+ '<input type="file" accept="' + accept + '" />'
+								+ '</form>'
+								+ '<form class="hide file-form">'
+									+ '<input type="file" accept="' + accept + '" />'
+								+ '</form>';
+					$container.append(fragment);
+					$fileForms = $container.find('.file-form');
+					$files = $fileForms.find('input[type="file"]');
+						
 					if(!$x.length) {
 						$form.append('<input type="hidden" name="x" data-name="x"/>');
 						$x = $form.find('input[data-name="x"]');
@@ -761,6 +771,9 @@
 								+ '</div>'
 							+ '</div>';
 					$sourceContainer.append(html);
+					renderCallback();
+					
+					
 					$clipContainer = $sourceContainer.find('.clip-container');
 					$clipRect = $clipContainer.find('.clip-rect');
 					$pointContainer = $clipContainer.find('.point-container');
@@ -1129,6 +1142,9 @@
 						$previewImage.addClass('hide');
 						sourceFile = null;
 						$form[0].reset();
+						$fileForms.each(function(form, index) {
+							form.reset();
+						});
 					});
 					
 					$(fullscreenContainer).bind('mouseup', function() {
@@ -1271,8 +1287,9 @@
 						$fh.val(imageHeight);
 					}
 					
-					$file.bind('change', function() {
-						var file = $file[0].files[0],
+					$files.bind('change', function() {
+						var $file = $(this),
+						file = this.files[0],
 						realSize,
 						valid;
 						if(file) {
@@ -1292,6 +1309,7 @@
 									success : function(data) {
 										valid = data.success;
 										if(!valid) {
+											$file.closest('form')[0].reset();
 											errorTypeCallback(data.msg);
 										}
 									}
@@ -1317,8 +1335,7 @@
 									$previewImage.attr('src', result).removeClass('hide');
 									// 计算尺寸
 									resizeImage(image);
-									uploadCallback(result, sourceFile);
-									sourceFile = file;
+									uploadCallback(result);
 								};
 								image.src = result;
 								$clipContainer.removeClass('hide');
@@ -1327,15 +1344,21 @@
 						}
 					});
 					
+					// 第一个为空的file click
 					$upload.bind('click', function() {
-						$file.click();
+						var file = $files[0].files[0];
+						if(!file) {
+							$files.eq(0).click();
+						} else {
+							$files.eq(1).click();
+						}
 					});
 					
 					$save.bind('click', function() {
-						if(beforeCheck($form, sourceFile) == false) {
+						if(beforeCheck($form, $files) == false) {
 							return false;
 						}
-						var formData = getFormData($form, sourceFile);
+						var formData = getFormData($form, $files);
 						if(!formData) {
 							return false;
 						}
