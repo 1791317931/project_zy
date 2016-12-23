@@ -39,7 +39,8 @@ $(function() {
 	$('.clip-image-container').ClipImage({
 //		mode : 'circle',
 //		fixed : true
-		url : 'xxx'
+		imageTypeCheckUrl : ctx + 'upload/checkImageType',
+		url : ctx + 'uploadAction!upload'
 //		errorTypeCallback : 'xxx'
 	});
 	
