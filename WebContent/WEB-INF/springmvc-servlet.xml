@@ -22,7 +22,7 @@
     
     <!-- 启动SpringMVC的注解功能，完成请求和注解POJO的映射 -->
 	<!-- 默认的注解映射的支持 会自动注册DefaultAnnotationHandlerMapping与AnnotationMethodHandlerAdapter 两个bean -->
-	<!-- <mvc:annotation-driven >
+	<mvc:annotation-driven >
         <mvc:message-converters>
             <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
                 <property name="objectMapper">
@@ -36,10 +36,10 @@
                 </property>
             </bean>
         </mvc:message-converters>
-    </mvc:annotation-driven> -->
+    </mvc:annotation-driven>
 
     <!-- 配置根视图 -->
-    <mvc:view-controller path="/" view-name="redirect:/plugins/index"/>
+    <mvc:view-controller path="/" view-name="redirect:/index"/>
 
     <mvc:annotation-driven />
     

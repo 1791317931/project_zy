@@ -1135,14 +1135,18 @@
 							originX = e.clientX;
 							originY = e.clientY;
 						}
-					}).bind('reset', function() {
+					}).bind('reset', function(e) {
+						// 在input change时，如果图片校验不通过，form会reset，此时也会冒泡触发顶层$container.trigger('reset')
+						if(e.target != $container[0]) {
+							return false;
+						}
 						// 重置
 						$clipContainer.addClass('hide');
 						$sourceImage.addClass('hide');
 						$previewImage.addClass('hide');
 						sourceFile = null;
 						$form[0].reset();
-						$fileForms.each(function(form, index) {
+						$fileForms.each(function(index, form) {
 							form.reset();
 						});
 					});
@@ -1297,6 +1301,7 @@
 								var formData = new FormData();
 								formData.append('file', file);
 								formData.append('accept', accept);
+								formData.append('compress', compress);
 								$.ajax({
 									url : imageTypeCheckUrl,
 									data : formData,
