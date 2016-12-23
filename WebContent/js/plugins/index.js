@@ -2823,6 +2823,10 @@
 			
 			$this.attr('data-modal-version', 'modal-version-' + ZUtil.getVersion());
 		},
+		/**
+		 * $container.data('uploading')
+		 * 将组建上传状态暴露给外部
+		 */
 		UploadFile : function(opt) {
 			var $container = this,
 			Accept = {
