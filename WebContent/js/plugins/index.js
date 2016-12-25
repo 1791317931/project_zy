@@ -577,6 +577,8 @@
 				mode : 'normal',
 				// 是否可以缩放裁剪框大小
 				fixed : false,
+				// 默认压缩图片
+				compress : true,
 				// 全屏事件对象，如果是弹出层上传图片，最好设置modal层，这样不用将mouse事件绑定到body上
 				fullscreenContainer : $(document.body),
 				// 文件添加按钮
@@ -593,8 +595,10 @@
 				url : '',
 				// 检测图片类型是否合法
 				imageTypeCheckUrl : '',
-				// 默认压缩图片
-				compress : true,
+				// 检测图片路径不能为空
+				emptyCheckUrl : function(msg) {
+					Qm.warning(msg);
+				},
 				// 不能设置为image/*	否则个别电脑上chrome上传文件特别慢
 				accept : 'image/jpg,image/jpeg,image/png',
 				// 默认1M
@@ -1164,13 +1168,11 @@
 							$target.hasClass('clip-rect') && moveClipRect(e);
 							$target.hasClass('point-container') && movePointContainer(e);
 							$target.hasClass('point') && movePoint(e);
-						} else {
-							return false;
 						}
 					});
 					
-					function transformTo(size) {
-						return size * 1024 * 1024;
+					function byteToM(size) {
+						return size / 1024 / 1024;
 					}
 					
 					var sourceContainerWidth = $sourceContainer.width(),
@@ -1297,37 +1299,41 @@
 						realSize,
 						valid;
 						if(file) {
-							if(imageTypeCheckUrl) {
-								var formData = new FormData();
-								formData.append('file', file);
-								formData.append('accept', accept);
-								formData.append('compress', compress);
-								$.ajax({
-									url : imageTypeCheckUrl,
-									data : formData,
-									async : false,
-									beforeSend : beforeSend,
-									complete : complete,
-									type : 'post',
-									contentType: false,
-									processData: false,
-									success : function(data) {
-										valid = data.success;
-										if(!valid) {
-											$file.closest('form')[0].reset();
-											errorTypeCallback(data.msg);
-										}
-									}
-								});
-								
-								if(!valid) {
-									return false;
-								}
+							// 针对开发人员
+							if(!imageTypeCheckUrl) {
+								emptyCheckUrl('imageTypeCheckUrl参数必填');
+								return false;
 							}
 							
-							realSize = file.size;
+							var formData = new FormData();
+							formData.append('file', file);
+							formData.append('accept', accept);
+							
+							$.ajax({
+								url : imageTypeCheckUrl,
+								data : formData,
+								async : false,
+								beforeSend : beforeSend,
+								complete : complete,
+								type : 'post',
+								contentType: false,
+								processData: false,
+								success : function(data) {
+									valid = data.success;
+									if(!valid) {
+										$file.closest('form')[0].reset();
+										errorTypeCallback(data.msg);
+									}
+								}
+							});
+							
+							if(!valid) {
+								return false;
+							}
+							
+							realSize = byteToM(file.size);
 							// 图片过大
-							if(realSize > transformTo(size)) {
+							if(realSize > size) {
 								sizeOver(size, realSize);
 								return false;
 							}
@@ -1336,6 +1342,9 @@
 								var result = e.target.result,
 								image = new Image();
 								image.onload = function() {
+									// 重置另一个表单，清空input type="file"
+									$files.eq(1 - $files.index($file)).closest('form')[0].reset();
+									
 									$sourceImage.attr('src', result).removeClass('hide');
 									$previewImage.attr('src', result).removeClass('hide');
 									// 计算尺寸

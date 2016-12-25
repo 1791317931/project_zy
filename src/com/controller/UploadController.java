@@ -123,7 +123,7 @@ public class UploadController {
 		
 		accept = accept.replace(" ", "");
 		// [jpg, jpeg, png]
-		String accepts[] = accept.toLowerCase().replace("image/", "").replace(" ", "").split(",");
+		String accepts[] = getAccepts(accept);
 		// jpg、png、jpeg
 		String imgType = file.getContentType().split("/")[1].toLowerCase();
 		errorMsg = "文件格式只能是[" + accept.replace("image/", "") + "]";
@@ -140,6 +140,7 @@ public class UploadController {
 		/**
 		 * 校验伪装的图片
 		 * 比如a.txt-->a.jpg、a.png、a.jpeg，通过文件头前8位来对比
+		 * 但是a.jpg修改为a.jpeg这种是可以通过的
 		 */
 		String head = getHeader(file);
 		boolean valid = false;
@@ -173,6 +174,7 @@ public class UploadController {
 	/**
 	 * @param file
 	 * @param compress		是否压缩	默认true,此时不能上传bmp图片
+	 * @param accept		input框可接受文件类型
 	 * @param finalWidth	图片缩放后宽度
 	 * @param finalHeight	图片缩放后高度
 	 * @param x				裁剪起始x
@@ -183,10 +185,19 @@ public class UploadController {
 	 */
 	public Map<String, Object> upload(MultipartFile file,
 			@RequestParam(required = true, defaultValue = "true") boolean compress,
+			@RequestParam(required = false, defaultValue = "image/jpg,image/png,image/jpeg") String accept,
 			int finalWidth, int finalHeight, int x, int y, int w, int h) {
 		Map<String, Object> result = new HashMap<String, Object>();
 		
+		// 再校验一次
+//		checkImageType(file, accept)
+		
 		return result;
+	}
+	
+	private static String[] getAccepts(String accept) {
+		accept = accept.toLowerCase().replace(" ", "").replace("image/", "");
+		return accept.split(",");
 	}
 	
 }
