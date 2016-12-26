@@ -1334,7 +1334,7 @@
 							realSize = byteToM(file.size);
 							// 图片过大
 							if(realSize > size) {
-								sizeOver(size, realSize);
+								sizeOver(size, realSize.toFixed(1));
 								return false;
 							}
 							var reader = new FileReader();
