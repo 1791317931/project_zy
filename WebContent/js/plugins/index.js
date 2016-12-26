@@ -2918,7 +2918,7 @@
 					}
 				},
 				// 保存回调
-				callback : $.noop
+				saveCallback : $.noop
 			};
 			
 			option = $.extend(true, option, opt);
@@ -2945,7 +2945,7 @@
 			rowAddCallback = option.rowAddCallback,
 			changeCallback = option.changeCallback,
 			beforeSave = option.beforeSave,
-			callback = option.callback;
+			saveCallback = option.saveCallback;
 			
 			if(!$container.attr('data-version')) {
 				var row = '<div class="z-upload-row">'
@@ -3177,14 +3177,12 @@
 						return false;
 					}
 					
-					if(beforeSave(fileUploads) == false) {
+					// 只有上传视频时需要校验是否选择转码要求
+					if(option.type == 'video' && beforeSave(fileUploads) == false) {
 						return false;
 					}
 					
-					// 重置
-					$container.trigger('reset');
-					
-					callback(fileUploads);
+					saveCallback(fileUploads);
 				}
 				
 				function beforeUpload($row, $upload) {

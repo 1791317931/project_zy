@@ -173,7 +173,7 @@ public class UploadController {
 	
 	/**
 	 * @param file
-	 * @param compress		是否压缩	默认true,此时不能上传bmp图片
+	 * @param compress		是否裁剪	默认true,此时不能上传bmp图片或者被P过的图片
 	 * @param accept		input框可接受文件类型
 	 * @param finalWidth	图片缩放后宽度
 	 * @param finalHeight	图片缩放后高度
