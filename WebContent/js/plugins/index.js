@@ -2788,6 +2788,7 @@
 		/**
 		 * 绑定modal的show、hide事件
 		 * altKey	是否允许按ESC键控制modal隐藏	默认true
+		 * $container.trigger('show');
 		 */
 		ToggleModal : function(showCallback, hideCallback, altKey) {
 			var $this = this;
@@ -2838,8 +2839,20 @@
 			$this.attr('data-modal-version', 'modal-version-' + ZUtil.getVersion());
 		},
 		/**
-		 * $container.data('uploading')
-		 * 将组建上传状态暴露给外部
+		 * demo:
+		 * <div class="upload">
+		 * 		<div class="z-upload-container"></div>
+		 * </div>
+		 * <button class="saveUpload">
+		 * 		上传
+		 * </button>
+		 * 
+		 * $('upload').UploadFile({
+		 * 		
+		 * });
+		 * 
+		 * 特性：
+		 * 1、$container.data('uploading')	将组建上传状态暴露给外部
 		 */
 		UploadFile : function(opt) {
 			var $container = this,
@@ -2901,9 +2914,6 @@
 				uploadError : function() {
 					ZUtil.error('上传失败');
 				},
-				uploadSuccess : function() {
-					ZUtil.error('上传成功');
-				},
 				// 当multiple为true时，每次添加.z-upload-row时回调，.z-upload-rows重置时也会回调
 				rowAddCallback : $.noop,
 				// change事件并且文件不为空触发回调
@@ -2940,7 +2950,6 @@
 			emptyFile = option.emptyFile,
 			repeatUpload = option.repeatUpload,
 			uploadError = option.uploadError,
-			uploadSuccess = option.uploadSuccess,
 			invalidType = option.invalidType,
 			rowAddCallback = option.rowAddCallback,
 			changeCallback = option.changeCallback,
