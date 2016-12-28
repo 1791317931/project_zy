@@ -618,7 +618,7 @@
 				// ajax complete
 				complete : $.noop,
 				// change事件回调
-				uploadCallback : $.noop,
+				changeCallback : $.noop,
 				// 图片上传之前校验，如果返回false阻止ajax	$form	file
 				beforeCheck : $.noop,
 				/**
@@ -678,7 +678,7 @@
 			renderCallback = param.renderCallback,
 			emptyFileCallback = param.emptyFileCallback,
 			errorTypeCallback = param.errorTypeCallback,
-			uploadCallback = param.uploadCallback,
+			changeCallback = param.changeCallback,
 			beforeCheck = param.beforeCheck,
 			beforeSend = param.beforeSend,
 			complete = param.complete,
@@ -1349,7 +1349,7 @@
 									$previewImage.attr('src', result).removeClass('hide');
 									// 计算尺寸
 									resizeImage(image);
-									uploadCallback(result);
+									changeCallback(result);
 								};
 								image.src = result;
 								$clipContainer.removeClass('hide');
