@@ -570,6 +570,10 @@
 				url : 'xxx',
 				mode : 'circle'
 		   });
+		   
+		   新增特性:
+		   2016-12-29
+		   1、支持从服务器获取图片并进行处理，此时需要updateUrl
 		 */
 		ClipImage : function(opt) {
 			var param = {
@@ -585,6 +589,8 @@
 				uploadSelector : '.add-btn',
 				// 保存按钮
 				saveSelector : '.save-btn',
+				// 直接更新.source-image的src，提交图片裁剪参数以及服务器图片路径进行处理
+				updateSelector : '.update-btn',
 				sourceContainerSelector : '.source-container',
 				previewContainerSelector : '.preview-container',
 				// 原图
@@ -593,6 +599,8 @@
 				previewImageSelector : '.preview-image',
 				// 上传路径
 				url : '',
+				// 从服务器获取图片并处理时的url
+				updateUrl : '',
 				// 检测图片类型是否合法
 				imageTypeCheckUrl : '',
 				// 检测图片路径不能为空
@@ -619,23 +627,36 @@
 				complete : $.noop,
 				// change事件回调
 				changeCallback : $.noop,
-				// 图片上传之前校验，如果返回false阻止ajax	$form	file
+				// 图片上传之前校验，如果返回false阻止ajax	$form	$files	$sourceImage
 				beforeCheck : $.noop,
 				/**
 				 * 通过该方法获取ajax data数据	$form	file
 				 * 这里type=file取值时最好直接用file,否则上传的图片过大时会有bug
+				 * $files	如果为null或者undefined，那么是从服务器获取源图片进行处理，只需要校验图片路径是否存在
 				 */
-				getFormData : function($form, $files) {
-					// 先校验文件
-					var file = $files[0].files[0] || $files[1].files[0],
-					formData = new FormData();
+				getFormData : function($form, $files, $sourceImage) {
+					var formData = new FormData();
 					
-					if(file) {
-						formData.append(name, file);
+					if($files) {
+						// 上传图片，先校验文件
+						var file = $files[0].files[0] || $files[1].files[0];
+						
+						if(file) {
+							formData.append(fileName, file);
+						} else {
+							// 没有找到文件，返回false
+							emptyFileCallback();
+							return false;
+						}
 					} else {
-						// 没有找到文件，返回false
-						emptyFileCallback();
-						return false;
+						// 从服务器获取图片，并且进行处理，校验图片路径是否存在
+						var src = $sourceImage.attr('data-src');
+						if(!src) {
+							// 没有找到图片路径，返回false
+							emptyFileCallback();
+							return false;
+						}
+						formData.append('imgPath', src);
 					}
 					
 					var $inputs = $form.find('input'),
@@ -665,11 +686,13 @@
 			fullscreenContainer = param.fullscreenContainer,
 			uploadSelector = param.uploadSelector,
 			saveSelector = param.saveSelector,
+			updateSelector = param.updateSelector,
 			sourceContainerSelector = param.sourceContainerSelector,
 			previewContainerSelector = param.previewContainerSelector,
 			sourceImageSelector = param.sourceImageSelector,
 			previewImageSelector = param.previewImageSelector,
 			url = param.url,
+			updateUrl = param.updateUrl,
 			imageTypeCheckUrl = param.imageTypeCheckUrl,
 			compress = param.compress,
 			accept = param.accept.toLowerCase(),
@@ -691,6 +714,7 @@
 					$container.attr('data-inited', 'Y');
 					var $upload = $container.find(uploadSelector),
 					$save = $container.find(saveSelector),
+					$update = $container.find(updateSelector),
 					$sourceContainer = $container.find(sourceContainerSelector),
 					$previewContainer = $container.find(previewContainerSelector),
 					$sourceImage = $container.find(sourceImageSelector),
@@ -1140,19 +1164,20 @@
 							originY = e.clientY;
 						}
 					}).bind('reset', function(e) {
-						// 在input change时，如果图片校验不通过，form会reset，此时也会冒泡触发顶层$container.trigger('reset')
-						if(e.target != $container[0]) {
-							return false;
+						/**
+						 * 在input change时，如果图片校验不通过，form会reset，此时也会冒泡触发顶层$container.trigger('reset')
+						 * 同时这里不能返回false，否则会中断子dom-->form的reset()
+						 */
+						if(e.target == $container[0]) {
+							// 重置
+							$clipContainer.addClass('hide');
+							$sourceImage.addClass('hide').removeAttr('data-src');
+							$previewImage.addClass('hide');
+							$form[0].reset();
+							$fileForms.each(function(index, form) {
+								form.reset();
+							});
 						}
-						// 重置
-						$clipContainer.addClass('hide');
-						$sourceImage.addClass('hide');
-						$previewImage.addClass('hide');
-						sourceFile = null;
-						$form[0].reset();
-						$fileForms.each(function(index, form) {
-							form.reset();
-						});
 					});
 					
 					$(fullscreenContainer).bind('mouseup', function() {
@@ -1274,6 +1299,11 @@
 						previewHeight = $previewContainer.height(),
 						percent = rectWidth / previewWidth;
 						
+						$fw.val(imageWidth);
+						$fh.val(imageHeight);
+						$x.val(left);
+						$y.val(top);
+						
 						// 计算预览图片的宽高
 						if(percent != 1) {
 							top = top / percent;
@@ -1287,10 +1317,17 @@
 							top : -top,
 							left : -left
 						});
-						$x.val(left);
-						$y.val(top);
-						$fw.val(imageWidth);
-						$fh.val(imageHeight);
+					}
+					
+					// isUpload	如果为true，隐藏.update-btn，显示.save-btn
+					function toggleButtons(isUpload) {
+						if(isUpload) {
+							$update.addClass('hide');
+							$save.removeClass('hide');
+						} else {
+							$save.addClass('hide');
+							$update.removeClass('hide');
+						}
 					}
 					
 					$files.bind('change', function() {
@@ -1345,10 +1382,15 @@
 									// 重置另一个表单，清空input type="file"
 									$files.eq(1 - $files.index($file)).closest('form')[0].reset();
 									
-									$sourceImage.attr('src', result).removeClass('hide');
+									$sourceImage.attr('src', result).removeClass('hide').removeAttr('data-src');
 									$previewImage.attr('src', result).removeClass('hide');
+									
 									// 计算尺寸
 									resizeImage(image);
+									
+									// 切换按钮
+									toggleButtons(true);
+									
 									changeCallback(result);
 								};
 								image.src = result;
@@ -1356,6 +1398,47 @@
 							};
 							reader.readAsDataURL(file);
 						}
+					});
+					
+					/**
+					 * 直接修改图片src
+					 * param obj		prefix	路径前缀	http://localhost:8080/study/
+					 * 					path	服务器路径	a/b/c.jpg
+					 */ 
+					$sourceImage.bind('change', function(event, obj) {
+						var image = new Image(),
+						prefix = obj.prefix,
+						path = obj.path,
+						src = prefix + path;
+						
+						image.onload = function() {
+							// 清空所有input type="file"的form
+							$files.each(function(index, item) {
+								$(item).closest('form')[0].reset();
+							});
+							
+							$sourceImage.attr({
+								src : src,
+								'data-src' : path
+							}).removeClass('hide');
+							$previewImage.attr('src', src).removeClass('hide');
+							
+							// 计算尺寸
+							resizeImage(image);
+							
+							// 切换按钮
+							toggleButtons(false);
+							
+							changeCallback(src);
+						};
+
+						// 从服务器获取的图片可能加载失败，此时必须reset，否则会出现裁剪框
+						image.onerror = function() {
+							$container.trigger('reset');
+						};
+						
+						image.src = src;
+						$clipContainer.removeClass('hide');
 					});
 					
 					// 第一个为空的file click
@@ -1368,8 +1451,9 @@
 						}
 					});
 					
+					// 上传图片
 					$save.bind('click', function() {
-						if(beforeCheck($form, $files) == false) {
+						if(beforeCheck($form, $files, $sourceImage) == false) {
 							return false;
 						}
 						var formData = getFormData($form, $files);
@@ -1390,6 +1474,33 @@
 							type : 'post',
 							contentType: false,
 							processData: false,
+							success : function(data) {
+								saveCallback(data);
+							}
+						});
+					});
+					
+					// 直接获取服务器的图片进行处理
+					$update.bind('click', function() {
+						if(beforeCheck($form, $files, $sourceImage) == false) {
+							return false;
+						}
+						var formData = getFormData($form, null, $sourceImage);
+						if(!formData) {
+							return false;
+						}
+						
+						// 有效的图片类型
+						formData.append('accept', accept);
+						// 是否压缩图片
+						formData.append('compress', compress);
+						
+						$.ajax({
+							url : updateUrl,
+							data : formData,
+							beforeSend : beforeSend,
+							complete : complete,
+							type : 'post',
 							success : function(data) {
 								saveCallback(data);
 							}
@@ -2851,7 +2962,8 @@
 		 * 		
 		 * });
 		 * 
-		 * 特性：
+		 * 新增特性：
+		 * 2016-12-8
 		 * 1、$container.data('uploading')	将组建上传状态暴露给外部
 		 */
 		UploadFile : function(opt) {
@@ -3002,8 +3114,11 @@
 				$save = $(saveButtonSelector);
 				
 				// 重置插件
-				$container.bind('reset', function() {
-					$rows.html(row);
+				$container.bind('reset', function(e) {
+					// 事件源必须是$container,同时这里不能返回false，否则会中断子dom-->form的reset()
+					if(e.target == $container[0]) {
+						$rows.html(row);
+					}
 				});
 				
 				if(mode == 'modal') {
