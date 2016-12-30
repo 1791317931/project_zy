@@ -3455,7 +3455,7 @@
 						var progress = Math.round(loaded / size * 100);
 						// 每次更新的时间间隔 >= speedUpdateInterval，或者上传完毕
 						if(distance >= speedUpdateInterval || progress == 100) {
-							var speed = translateByte((loaded - load) / distance * 1000);
+							var speed = ZUtil.translateByte((loaded - load) / distance * 1000);
 							$speed.html('速度：' + speed + '/s');
 							prev = now;
 							load = loaded;
