@@ -37,19 +37,22 @@ $(function() {
 	
 	// 图片裁剪
 	$('.clip-image-container').ClipImage({
-//		mode : 'circle',
-//		fixed : true
 		size : 4,
-//		accept : 'image/bmp',
-//		resizable : false,
-//		cutable : false,
 		imageTypeCheckUrl : ctx + 'upload/check',
 		url : ctx + 'upload/save_cut',
-//		accept : '*',
+		updateUrl : ctx + 'upload/save_cut_from_server',
 		emptyFileCallback : function() {
 			ZUtil.error('请上传图片');
+		},
+		renderCallback : function() {
+			$('.select-from-storage').bind('click', function() {
+				
+			});
+		},
+		saveCallback : function(data) {
+			ZUtil.success('图片上传成功');
+			$('.result-image').attr('src', ctx + data.imgPath);
 		}
-//		errorTypeCallback : 'xxx'
 	});
 	
 //	$('.edit-view-container').EditViewForProgrammer();

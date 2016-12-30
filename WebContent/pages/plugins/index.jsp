@@ -252,6 +252,7 @@
 		height: 500px;
 	}
 	.title {font-size: 18px;}
+	.result-container {width: 200px; height: 200px; border: 1px solid red;}
 </style>
 
 <script type="text/javascript" src="<%=basePath%>/js/jquery.js?<%=new Date().getTime()%>"></script>
@@ -379,9 +380,22 @@
 						<div class="preview-container ml10 pull-left">
 							<img class="preview-image">
 						</div>
+						<div class="result-container ml10 pull-left">
+							<img class="result-image">
+						</div>
 					</div>
 					<div class="center mt15">
-						<button class="btn btn-primary save-btn">保存</button>
+						<button class="btn btn-primary select-from-storage">从图片库选取图片</button>
+						<button class="btn btn-primary ml10 update-btn">保存系统图片</button>
+						<button class="btn btn-primary ml10 save-btn">保存</button>
+					</div>
+					<div class="z-modal" id="select-from-storage">
+						<div class="z-modal-body">
+							<p class="center title">选择图片</p>
+							<div class="center mt20">
+								<img src="" />
+							</div>
+						</div>
 					</div>
 				</div>
 				<div class="item-tip">

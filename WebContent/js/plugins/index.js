@@ -696,9 +696,7 @@
 					return formData;
 				},
 				// 保存图片回调	data
-				saveCallback : function(data) {
-					ZUtil.success('图片上传成功,图片路径[' + data.imgPath + ']');
-				}
+				saveCallback : $.noop
 			},
 			v = ZUtil.getVersion();
 			

@@ -52,6 +52,7 @@
     <!-- 静态资源配置 -->
     <mvc:resources location="/css/" mapping="/css/**"></mvc:resources>
     <mvc:resources location="/imgs/" mapping="/imgs/**"></mvc:resources>
+    <mvc:resources location="/upload/" mapping="/upload/**"></mvc:resources>
     <mvc:resources location="/js/" mapping="/js/**"></mvc:resources>
 
     <!-- 视图层配置 -->
