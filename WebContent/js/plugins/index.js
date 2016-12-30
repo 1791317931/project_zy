@@ -1,6 +1,6 @@
 (function() {
 	var ZUtil = {
-		v : '0.0.2',
+		v : '0.0.3',
 		/**
 		 * 函数由start --> to，默认700ms
 		 * @param start		初始值
@@ -346,6 +346,21 @@
 			$successModal.find('.msg-body').attr('data-empty', msg);
 			$successModal.trigger('show');
 		},
+		// 字节转换为KB或MB或GB，保留整数
+		translateByte : function(size) {
+			var result = size / 1024 / 1024 / 1024;
+			// GB
+			if(result >= 1) {
+				return parseInt(result) + 'GB';
+			}
+			result = size / 1024 / 1024;
+			// MB
+			if(result >= 1) {
+				return parseInt(result) + 'MB';
+			}
+			// KB
+			return parseInt(size / 1024) + 'KB';
+		},
 		// 开启document	选中
 		validSelect : function() {
 			if(document.all) {
@@ -581,8 +596,11 @@
 				mode : 'normal',
 				// 是否可以缩放裁剪框大小
 				fixed : false,
-				// 默认压缩图片
-				compress : true,
+				// 是否缩放图片
+				resizable : true,
+				// 是否裁剪图片
+				cutable : true,
+				fileName : 'file',
 				// 全屏事件对象，如果是弹出层上传图片，最好设置modal层，这样不用将mouse事件绑定到body上
 				fullscreenContainer : $(document.body),
 				// 文件添加按钮
@@ -605,14 +623,16 @@
 				imageTypeCheckUrl : '',
 				// 检测图片路径不能为空
 				emptyCheckUrl : function(msg) {
-					Qm.warning(msg);
+					ZUtil.error(msg);
 				},
 				// 不能设置为image/*	否则个别电脑上chrome上传文件特别慢
 				accept : 'image/jpg,image/jpeg,image/png',
 				// 默认1M
 				size : 1,
 				// 图片超出最大尺寸后，由于提示信息可能不同，所以调用外部方法
-				sizeOver : $.noop,
+				sizeOver : function(maxSize, realSize) {
+					ZUtil.error('允许上传的文件最大为[' + maxSize + ']，实际上传大小为[' + realSize + ']');
+				},
 				// 插件初始化完成后回调
 				renderCallback : $.noop,
 				// 没有图片回调
@@ -676,13 +696,16 @@
 					return formData;
 				},
 				// 保存图片回调	data
-				saveCallback : $.noop
+				saveCallback : function(data) {
+					ZUtil.success('图片上传成功,图片路径[' + data.imgPath + ']');
+				}
 			},
 			v = ZUtil.getVersion();
 			
 			param = $.extend(true, param, opt);
 			var mode = param.mode,
 			fixed = param.fixed,
+			fileName = param.fileName,
 			fullscreenContainer = param.fullscreenContainer,
 			uploadSelector = param.uploadSelector,
 			saveSelector = param.saveSelector,
@@ -694,7 +717,8 @@
 			url = param.url,
 			updateUrl = param.updateUrl,
 			imageTypeCheckUrl = param.imageTypeCheckUrl,
-			compress = param.compress,
+			resizable = param.resizable,
+			cutable = param.cutable,
 			accept = param.accept.toLowerCase(),
 			size = param.size,
 			sizeOver = param.sizeOver,
@@ -1336,6 +1360,14 @@
 						realSize,
 						valid;
 						if(file) {
+							
+							realSize = byteToM(file.size);
+							// 图片过大
+							if(realSize > size) {
+								sizeOver(size + 'MB', realSize.toFixed(1) + 'MB');
+								return false;
+							}
+							
 							// 针对开发人员
 							if(!imageTypeCheckUrl) {
 								emptyCheckUrl('imageTypeCheckUrl参数必填');
@@ -1368,12 +1400,6 @@
 								return false;
 							}
 							
-							realSize = byteToM(file.size);
-							// 图片过大
-							if(realSize > size) {
-								sizeOver(size, realSize.toFixed(1));
-								return false;
-							}
 							var reader = new FileReader();
 							reader.onload = function(e) {
 								var result = e.target.result,
@@ -1463,8 +1489,10 @@
 						
 						// 有效的图片类型
 						formData.append('accept', accept);
-						// 是否压缩图片
-						formData.append('compress', compress);
+						// 是否缩放图片
+						formData.append('resizable', resizable);
+						// 是否裁剪图片
+						formData.append('cutable', cutable);
 						
 						$.ajax({
 							url : url,
@@ -1475,6 +1503,10 @@
 							contentType: false,
 							processData: false,
 							success : function(data) {
+								if(!data.success) {
+									errorTypeCallback(data.msg);
+									return false;
+								}
 								saveCallback(data);
 							}
 						});
@@ -1492,8 +1524,10 @@
 						
 						// 有效的图片类型
 						formData.append('accept', accept);
-						// 是否压缩图片
-						formData.append('compress', compress);
+						// 是否缩放图片
+						formData.append('resizable', resizable);
+						// 是否裁剪图片
+						formData.append('cutable', cutable);
 						
 						$.ajax({
 							url : updateUrl,
@@ -3177,7 +3211,7 @@
 					// 检测文件大小
 					var size = file.size;
 					if(size > maxSize) {
-						sizeOver(translateByte(maxSize), translateByte(size));
+						sizeOver(ZUtil.translateByte(maxSize), ZUtil.translateByte(size));
 						return false;
 					}
 					
@@ -3359,26 +3393,10 @@
 				function setProgressBar($row, file) {
 					var $bar = $row.find('.z-progress-bar'),
 					innerHtml = '<div class="z-file-name z-upload-cell">'+ file.name + '</div>'
-								+ '<div class="z-upload-progress z-upload-cell">进度：0% of ' + translateByte(file.size) + '</div>'
+								+ '<div class="z-upload-progress z-upload-cell">进度：0% of ' + ZUtil.translateByte(file.size) + '</div>'
 								+ '<div class="z-upload-speed z-upload-cell">速度：0KB/s</div>'
 								+ '<div class="z-upload-progress-linear"></div>';
 					$bar.html(innerHtml);
-				}
-				
-				// 字节转换为KB或MB或GB，保留整数
-				function translateByte(size) {
-					var result = size / 1024 / 1024 / 1024;
-					// GB
-					if(result >= 1) {
-						return parseInt(result) + 'GB';
-					}
-					result = size / 1024 / 1024;
-					// MB
-					if(result >= 1) {
-						return parseInt(result) + 'MB';
-					}
-					// KB
-					return parseInt(size / 1024) + 'KB';
 				}
 				
 				// 上传文件
@@ -3395,7 +3413,7 @@
 					load = 0,
 					// 文件大小
 					size = file.size,
-					translateSize = translateByte(size),
+					translateSize = ZUtil.translateByte(size),
 					prevProgress = 0,
 					$bar = $row.find('.z-progress-bar'),
 					$progress = $row.find('.z-upload-progress'),

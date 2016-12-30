@@ -403,6 +403,9 @@
 					<div>
 						在<span>mousemove</span>的时候，如果返回<span>false</span>会阻止事件冒泡，从而使<span>onselectstart</span>失效
 					</div>
+					<div>
+						支持从服务器获取图片并处理，只需要将file替换为服务器中图片的<span>物理路径</span>即可
+					</div>
 				</div>
 			</div>
 			<div class="content-body-item" data-type="horizontal-slide">

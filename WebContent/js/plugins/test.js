@@ -39,8 +39,16 @@ $(function() {
 	$('.clip-image-container').ClipImage({
 //		mode : 'circle',
 //		fixed : true
-		imageTypeCheckUrl : ctx + 'upload/checkImageType',
-		url : ctx + 'uploadAction!upload'
+		size : 4,
+//		accept : 'image/bmp',
+//		resizable : false,
+//		cutable : false,
+		imageTypeCheckUrl : ctx + 'upload/check',
+		url : ctx + 'upload/save_cut',
+//		accept : '*',
+		emptyFileCallback : function() {
+			ZUtil.error('请上传图片');
+		}
 //		errorTypeCallback : 'xxx'
 	});
 	

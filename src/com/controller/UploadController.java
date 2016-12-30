@@ -1,16 +1,20 @@
 package com.controller;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.util.ImageUtils;
 
 @RequestMapping(value = "/upload")
 @Controller
@@ -32,7 +36,7 @@ public class UploadController {
 	}
 	
 	// 判断文件后缀是否合法
-	private static boolean suffixIsValid(String suffix, String accepts[]) {
+	public static boolean suffixIsValid(String suffix, String accepts[]) {
 		for(String type : accepts) {
 			if(type.equals(suffix)) {
 				return true;
@@ -41,72 +45,8 @@ public class UploadController {
 		return false;
 	}
 	
-	// 获取文件头信息，读取前4个字节--8位
-	public static String getHeader(MultipartFile file) {
-		byte header[] = new byte[4];
-		String imgType = "";
-		try {
-			int read = file.getInputStream().read(header);
-			StringBuilder stringBuilder = new StringBuilder(); 
-			
-			if(read > 0) {
-				if(header == null || header.length <= 0) {      
-					return null;
-				}      
-				for(int i = 0; i < header.length; i++) {      
-					int v = header[i] & 0xFF;      
-					String hv = Integer.toHexString(v);      
-					if(hv.length() < 2) {      
-						stringBuilder.append(0);      
-					}      
-					stringBuilder.append(hv);      
-				} 
-				// 文件头信息
-				imgType = stringBuilder.toString();      
-			}
-			
-		} catch(Exception e) {
-			
-		}
-		
-		return imgType.toLowerCase();
-	}
-	
-	/**
-	 * 检测图片是否是RGB格式，而不是经过处理后生成的图片
-	 * @param url
-	 * @return
-	 */
-	public static boolean isRGB(String url) {
-		FileInputStream in = null;
-		boolean valid = true;
-		try {
-			// 构造BufferedImage对象
-			File file = new File(url);
-			in = new FileInputStream(file);
-			byte[] b = new byte[5];
-			in.read(b);
-			javax.imageio.ImageIO.read(file);
-		} catch (IOException e) {
-			e.printStackTrace();
-			valid = false;
-		} finally {
-			if(in != null) {
-				try {
-					in.close();
-				} catch(IOException e) {
-					valid = false;
-				}
-			}
-		}
-		
-		return valid;
-	}
-	
-	@RequestMapping(value = "/checkImageType")
-	@ResponseBody
-	public Map<String, Object> checkImageType(MultipartFile file, 
-			@RequestParam(required = false, defaultValue = "image/jpg,image/png,image/jpeg") String accept) {
+	public static Map<String, Object> fileTypeIsValid(MultipartFile file,
+			@RequestParam(defaultValue = "image/jpg,image/jpeg,image/png", required = false) String accept) {
 		
 		Map<String, Object> result = new HashMap<String, Object>();
 		String errorMsg;
@@ -125,7 +65,7 @@ public class UploadController {
 		// [jpg, jpeg, png]
 		String accepts[] = getAccepts(accept);
 		// jpg、png、jpeg
-		String imgType = file.getContentType().split("/")[1].toLowerCase();
+		String imgType = ImageUtils.getType(file);
 		errorMsg = "文件格式只能是[" + accept.replace("image/", "") + "]";
 		
 		// ---------------------------判断文件后缀 begin------------------------------------
@@ -142,7 +82,7 @@ public class UploadController {
 		 * 比如a.txt-->a.jpg、a.png、a.jpeg，通过文件头前8位来对比
 		 * 但是a.jpg修改为a.jpeg这种是可以通过的
 		 */
-		String head = getHeader(file);
+		String head = ImageUtils.getHeader(file);
 		boolean valid = false;
 		
 		for(String headInfo : accepts) {
@@ -160,39 +100,103 @@ public class UploadController {
 		}
 		// ---------------------------判断文件头 end-----------------------------------
 		
-		// ---------------------------检测图片内部格式 begin-----------------------------
-		/**
-		 * 有些jpg图片是PS生成的，虽然文件头也是jpg格式，但是内部格式不是RGB，也需要校验，否则java文件读取会报错
-		 * 如果需要压缩图片，那么必须校验是否是RGB
-		 */
-		// ---------------------------检测图片内部格式 end-----------------------------
-		
 		result.put("success", true);
+		
 		return result;
+	}
+	
+	@RequestMapping(value = "/check", method = RequestMethod.POST)
+	@ResponseBody
+	public Map<String, Object> checkImageType(MultipartFile file, 
+			@RequestParam(required = false, defaultValue = "image/jpg,image/png,image/jpeg") String accept) {
+		
+		return fileTypeIsValid(file, accept);
 	}
 	
 	/**
 	 * @param file
-	 * @param compress		是否裁剪	默认true,此时不能上传bmp图片或者被P过的图片
+	 * @param resize		是否缩放	默认true,此时不能上传bmp图片或者被P过的图片
+	 * @param cut			是否裁剪	默认true,此时不能上传bmp图片或者被P过的图片
 	 * @param accept		input框可接受文件类型
-	 * @param finalWidth	图片缩放后宽度
-	 * @param finalHeight	图片缩放后高度
+	 * @param fw			图片缩放后宽度
+	 * @param fh			图片缩放后高度
 	 * @param x				裁剪起始x
 	 * @param y				裁剪起始y
 	 * @param w				裁剪宽度
 	 * @param h				裁剪高度
 	 * @return
 	 */
-	public Map<String, Object> upload(MultipartFile file,
-			@RequestParam(required = true, defaultValue = "true") boolean compress,
+	@RequestMapping(value = "/save_cut", method = RequestMethod.POST)
+	@ResponseBody
+	public Map<String, Object> upload(HttpServletRequest request, MultipartFile file,
+			@RequestParam(required = true, defaultValue = "true") boolean resize,
+			@RequestParam(required = true, defaultValue = "true") boolean cut,
 			@RequestParam(required = false, defaultValue = "image/jpg,image/png,image/jpeg") String accept,
-			int finalWidth, int finalHeight, int x, int y, int w, int h) {
+			int fw, int fh, int x, int y, int w, int h) throws Exception {
+		
 		Map<String, Object> result = new HashMap<String, Object>();
 		
-		// 再校验一次
-//		checkImageType(file, accept)
+		String basePath = "upload/img/";
+		// 保存路径
+		String savePath = request.getServletContext().getRealPath("/") + basePath;
+		// 文件名
+		String fileName = UUID.randomUUID() + "";
 		
-		return result;
+		Map<String, Object> map = new HashMap<String, Object>();
+		boolean success = true;
+		String msg = "";
+		if(StringUtils.isEmpty(savePath)) {
+			success = false;
+			msg = "图片保存路径不能为空";
+		}
+		if(StringUtils.isEmpty(fileName)) {
+			success = false;
+			msg = "图片保存名称不能为空";
+		}
+		if(!success) {
+			map.put("success", success);
+			map.put("msg", msg);
+			return map;
+		}
+		
+		result = fileTypeIsValid(file, accept);
+		boolean valid = (boolean) result.get("success");
+		
+		// 校验文件类型是否合法
+		if (valid) {
+			// 1、首先上传图片
+			Map<String, Object> fileMap = ImageUtils.uploadFile(file, savePath, basePath, fileName, fw, fh);
+			
+			// 2、校验已经上传图片是否合法：P过的图片保存为jpg格式时，默认的模式是CMYK模式（注意，这是给印刷机用的）。在图像-->模式中改为RGB模式才是显示器用的
+			boolean isRGB = ImageUtils.isRGB((String) fileMap.get("fullPath"));
+			
+			if(!isRGB) {
+				map.put("success", false);
+				map.put("msg", NOT_RGB);
+			} else {
+				// 3、缩放
+				if(resize) {
+					ImageUtils.getImgResizePath(fileMap, fw, fh);
+				}
+				
+				// 4、裁剪
+				if(cut) {
+					ImageUtils.getImgCutPath(fileMap, x, y, w, h);
+				}
+				
+				String finalPath = savePath + fileName + "." + fileMap.get("type");
+				ImageUtils.copyFile(fileMap.get("fullPath") + "", finalPath);
+				// delFolder(system_physical_path + savePath + fileName);
+				
+				map.put("success", success);
+				map.put("imgPath", basePath + fileName + "." + fileMap.get("type"));
+			}
+		} else {
+			map.put("success", false);
+			map.put("msg", result.get("msg"));
+		}
+		
+		return map;
 	}
 	
 	private static String[] getAccepts(String accept) {
