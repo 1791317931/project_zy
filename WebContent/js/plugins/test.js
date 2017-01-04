@@ -38,15 +38,19 @@ $(function() {
 	// 图片裁剪
 	$('.clip-image-container').ClipImage({
 		size : 4,
-		imageTypeCheckUrl : ctx + 'upload/check',
-		url : ctx + 'upload/save_cut',
-		updateUrl : ctx + 'upload/save_cut_from_server',
-		emptyFileCallback : function() {
-			ZUtil.error('请上传图片');
-		},
 		renderCallback : function() {
+			$('#select-from-storage').ToggleModal();
+			
 			$('.select-from-storage').bind('click', function() {
-				
+				$('#select-from-storage').trigger('show');
+			});
+			
+			$('.select-img').bind('click', function() {
+				$('.source-image').trigger('change', {
+					prefix : ctx,
+					path : $('#select-from-storage img').attr('data-src')
+				});
+				$('#select-from-storage').trigger('hide');
 			});
 		},
 		saveCallback : function(data) {

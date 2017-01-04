@@ -675,9 +675,9 @@ public class ImageUtils {
 		String srcImgPath = fileMap.get("fullPath") + "";
 		String outImgPath = resizePath + resizeName + "." + type;
 		
-		int[] a = ImageUtils.getSize(srcImgPath, fw, fh);
+		int[] a = getSize(srcImgPath, fw, fh);
 		
-		ImageUtils.resize(srcImgPath, outImgPath, a[0], a[1]);
+		resize(srcImgPath, outImgPath, a[0], a[1]);
 		
 		fileMap.put("fullPath", outImgPath);
 	}

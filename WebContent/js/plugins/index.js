@@ -616,11 +616,11 @@
 				// 预览图片
 				previewImageSelector : '.preview-image',
 				// 上传路径
-				url : '',
+				url : ctx + 'upload/save_cut',
 				// 从服务器获取图片并处理时的url
-				updateUrl : '',
+				updateUrl : ctx + 'upload/save_cut_from_server',
 				// 检测图片类型是否合法
-				imageTypeCheckUrl : '',
+				imageTypeCheckUrl : ctx + 'upload/check',
 				// 检测图片路径不能为空
 				emptyCheckUrl : function(msg) {
 					ZUtil.error(msg);
@@ -636,7 +636,9 @@
 				// 插件初始化完成后回调
 				renderCallback : $.noop,
 				// 没有图片回调
-				emptyFileCallback : $.noop,
+				emptyFileCallback : function() {
+					ZUtil.error('请上传图片');
+				},
 				// 错误类型文件
 				errorTypeCallback : function(msg) {
 					ZUtil.error(msg);
@@ -1533,6 +1535,8 @@
 							beforeSend : beforeSend,
 							complete : complete,
 							type : 'post',
+							contentType: false,
+							processData: false,
 							success : function(data) {
 								saveCallback(data);
 							}
@@ -3295,6 +3299,11 @@
 					// 重复上传
 					if($row.data('file')) {
 						repeatUpload();
+						return false;
+					}
+					
+					// 只有上传视频时需要校验是否选择转码要求
+					if(option.type == 'video' && beforeSave() == false) {
 						return false;
 					}
 					

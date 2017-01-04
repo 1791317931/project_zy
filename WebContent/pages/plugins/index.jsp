@@ -63,6 +63,9 @@
 	}
 	.vat {vertical-align: top;}
 	.w200 {width: 200px;}
+	.w500 {width: 500px;}
+	.h200 {height: 200px;}
+	.h300 {height: 300px;}
 	.menu {
 		border-style: solid;
 		border-width: 1px;
@@ -386,14 +389,17 @@
 					</div>
 					<div class="center mt15">
 						<button class="btn btn-primary select-from-storage">从图片库选取图片</button>
-						<button class="btn btn-primary ml10 update-btn">保存系统图片</button>
+						<button class="btn btn-primary ml10 update-btn hide">保存</button>
 						<button class="btn btn-primary ml10 save-btn">保存</button>
 					</div>
-					<div class="z-modal" id="select-from-storage">
-						<div class="z-modal-body">
+					<div class="z-modal hide" id="select-from-storage">
+						<div class="z-modal-body w500 h300 p10">
 							<p class="center title">选择图片</p>
 							<div class="center mt20">
-								<img src="" />
+								<img class="w200 h200" src="<%=basePath%>/imgs/test-1/1.jpg" data-src="imgs/test-1/1.jpg" />
+							</div>
+							<div class="center mt10">
+								<button class="btn btn-primary select-img">确定</button>
 							</div>
 						</div>
 					</div>

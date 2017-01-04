@@ -219,7 +219,7 @@ public class UploadController {
 	 * @param h				文件截取高度
 	 * @return
 	 */
-	@RequestMapping(value="/img/cut_save_from_server", method = RequestMethod.POST)	
+	@RequestMapping(value = "/save_cut_from_server", method = RequestMethod.POST)	
 	@ResponseBody
 	public Map<String, Object> cutAndSaveFromServer(HttpServletRequest request, String imgPath,
 			int fw, int fh, int x, int y, int w, int h,
@@ -279,6 +279,9 @@ public class UploadController {
 		}
 		
 		Map<String, Object> fileMap = new HashMap<String, Object>();
+		fileMap.put("savePath", savePath);
+		fileMap.put("fileName", fileName);
+		fileMap.put("fullPath", realPath + imgPath);
 		
 		// 缩放
 		if(resizable) {
