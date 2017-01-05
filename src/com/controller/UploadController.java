@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -28,18 +29,57 @@ public class UploadController {
 	private static String BMP = "ffd8ffe0/ffd8ffe1";
 	private static String PNG = "89504e47";
 	private static String GIF = "47494638";
+	
 	private static Map<String, String> imageMap = new HashMap<String, String>();
+	private static Map<String, Map<String, Object>> fieldMaps = new HashMap<String, Map<String, Object>>();
+	
 	static {
 		imageMap.put("jpg", JPG);
 		imageMap.put("jpeg", JPEG);
 		imageMap.put("bmp", BMP);
 		imageMap.put("png", PNG);
 		imageMap.put("gif", GIF);
+		
+		Map<String, Object> imgPathMap = new HashMap<String, Object>();
+		imgPathMap.put("msg", "图片路径不能为空");
+		fieldMaps.put("imgPath", imgPathMap);
+		
+		Map<String, Object> savePathMap = new HashMap<String, Object>();
+		savePathMap.put("msg", "图片保存路径不能为空");
+		fieldMaps.put("savePath", savePathMap);
+		
+		Map<String, Object> fileNameMap = new HashMap<String, Object>();
+		fileNameMap.put("msg", "图片名称不能为空");
+		fieldMaps.put("fileName", fileNameMap);
 	}
 	
 	public static String[] getAccepts(String accept) {
 		accept = accept.toLowerCase().replace(" ", "").replace("image/", "");
 		return accept.split(",");
+	}
+	
+	/**
+	 * 校验字段是否为空，遇空返回
+	 * @param fields
+	 * @return
+	 */
+	public static Map<String, Object> validateFields(Map<String, Object> fieldMap) {
+		
+		Map<String, Object> result = new HashMap<String, Object>();
+		boolean success = true;
+		
+		for(Entry<String, Object> entry : fieldMap.entrySet()) {
+			String key = entry.getKey();
+			if(StringUtils.isEmpty(key)) {
+				success = false;
+				Map<String, Object> map = fieldMaps.get(key);
+				result.put("msg", map.get("msg"));
+				break;
+			}
+		}
+		
+		result.put("success", success);
+		return result;
 	}
 	
 	// 判断文件后缀是否合法
@@ -149,18 +189,19 @@ public class UploadController {
 		String fileName = UUID.randomUUID() + "";
 		
 		Map<String, Object> map = new HashMap<String, Object>();
-		boolean success = true;
 		String msg = "";
-		if(StringUtils.isEmpty(savePath)) {
-			success = false;
-			msg = "图片保存路径不能为空";
-		}
-		if(StringUtils.isEmpty(fileName)) {
-			success = false;
-			msg = "图片保存名称不能为空";
-		}
+		
+		// ----------------------校验字段-----------------------------
+		Map<String, Object> fieldMap = new HashMap<String, Object>();
+		fieldMap.put("savePath", savePath);
+		fieldMap.put("fileName", fileName);
+		Map<String, Object> resultMap = validateFields(fieldMap);
+		boolean success = (boolean) resultMap.get("success");
+		// ----------------------校验字段-----------------------------
+		
 		if(!success) {
 			map.put("success", success);
+			msg = (String) resultMap.get("msg");
 			map.put("msg", msg);
 			return map;
 		}
@@ -235,22 +276,21 @@ public class UploadController {
 		String fileName = UUID.randomUUID() + "";
 		
 		Map<String, Object> map = new HashMap<String, Object>();
-		boolean success = true;
 		String msg = "";
 		String imgUrl = realPath + imgPath;
 		
-		if(StringUtils.isEmpty(imgPath)) {
-			success = false;
-			msg = "图片路径不能为空";
+		// ----------------------校验字段-----------------------------
+		Map<String, Object> fieldMap = new HashMap<String, Object>();
+		fieldMap.put("imgPath", imgPath);
+		fieldMap.put("savePath", savePath);
+		fieldMap.put("fileName", fileName);
+		Map<String, Object> resultMap = validateFields(fieldMap);
+		boolean success = (boolean) resultMap.get("success");
+		if(!success) {
+			msg = (String) resultMap.get("msg");
 		}
-		if(StringUtils.isEmpty(savePath)) {
-			success = false;
-			msg = "图片保存路径不能为空";
-		}
-		if(StringUtils.isEmpty(fileName)) {
-			success = false;
-			msg = "图片保存名称不能为空";
-		}
+		// ----------------------校验字段-----------------------------
+		
 		// 判断图片是否存在，比如数据迁移时可能数据存在，但图片不存在
 		try {
 			if(!new File(imgUrl).exists()) {
