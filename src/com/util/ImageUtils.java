@@ -559,7 +559,9 @@ public class ImageUtils {
 	
 	// 获取文件类型
 	public static String getType(MultipartFile file) {
-		return file.getContentType().split("/")[1].toLowerCase();
+		String fileName = file.getOriginalFilename();
+		String[] arr = fileName.split("\\.");
+		return arr[arr.length - 1].toLowerCase();
 	}
 	
 	// 获取文件头信息，读取前4个字节--8位
