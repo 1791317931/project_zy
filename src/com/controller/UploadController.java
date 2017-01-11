@@ -1,12 +1,19 @@
 package com.controller;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Controller;
@@ -51,6 +58,10 @@ public class UploadController {
 		Map<String, Object> fileNameMap = new HashMap<String, Object>();
 		fileNameMap.put("msg", "图片名称不能为空");
 		fieldMaps.put("fileName", fileNameMap);
+	}
+	
+	public static String getFullPath(HttpServletRequest request, String filePath) {
+		return request.getServletContext().getRealPath("/") + filePath;
 	}
 	
 	public static String[] getAccepts(String accept) {
@@ -341,6 +352,81 @@ public class UploadController {
 		map.put("imgPath", UPLOAD_PATH + fileName + "." + fileMap.get("type"));
 		
 		return map;
+	}
+	
+	@RequestMapping(value="/attachment/exist", method = RequestMethod.POST)
+	@ResponseBody
+	public Map<String, Object> fileIsExists(HttpServletRequest request, String filePath) {
+		
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		boolean success = true;
+		String msg = "";
+		
+		try {
+			File file = new File(getFullPath(request, filePath));
+			
+			// 校验文件是否存在
+			if(!file.exists()) {
+				success = false;
+				msg = "抱歉，文件不存在";
+			}
+		} catch (Exception e) {
+			success = false;
+			msg = "服务器异常";
+		}
+		
+		resultMap.put("success", success);
+		
+		if(!success) {
+			resultMap.put("msg", msg);
+		}
+		
+		return resultMap;
+	}
+	
+	/**
+	 * 下载文件，这里不用校验，理论上下载图片之前都会校验图片是否存在
+	 * @param response
+	 * @param filePath
+	 * @param getRealName
+	 */
+	@RequestMapping(value="/attachment/download")
+	public void downloadFile(HttpServletResponse response, HttpServletRequest request, String filePath,
+			@RequestParam(defaultValue = "false") boolean getRealName) {
+		
+		try {
+			filePath = URLDecoder.decode(filePath, "utf-8");
+			File file = new File(getFullPath(request, filePath));
+			writeStream(response, file, getRealName);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	// 写文件流
+	public static void writeStream(HttpServletResponse response, File file, boolean getRealName) throws Exception {
+		
+		String fullPath = file.getPath();
+		String fileName = file.getName();
+		
+		// 是否返回文件真实名称		如uuid_倪大豆头像.jpg，返回倪大豆头像.jpg
+		if(getRealName) {
+			fileName = fileName.substring(fileName.lastIndexOf("_") + 1);
+		}
+		
+		InputStream is = new BufferedInputStream(new FileInputStream(fullPath));
+		byte[] buffer = new byte[is.available()];
+		is.read(buffer);
+		is.close();
+		response.reset();
+		// 先去掉文件名中的空格，转换为utf-8，保证不出现乱码
+		response.addHeader("Content-Disposition", "attachment;filename=" + new String(fileName.replaceAll(" ", "").getBytes("utf-8"), "iso8859-1"));
+		response.addHeader("Content-Length", "" + file.length());
+		OutputStream os = new BufferedOutputStream(response.getOutputStream());
+	    response.setContentType("application/octet-stream");
+	    os.write(buffer);// 输出文件
+	    os.flush();
+	    os.close();
 	}
 	
 }
