@@ -262,7 +262,8 @@
 		},
 		// 判断时使用!+[1,]能判断是否是ie浏览器，和标准的toString不一样，转换!NaN,只适用于ie8或以下版本
 		isIE : function() {
-			return navigator.userAgent.indexOf('.NET') != -1;
+			var agent = navigator.userAgent.toUpperCase();
+			return agent.indexOf('MSIE') != -1 || agent.indexOf('TRIDENT') != -1 || agent.indexOf('EDGE') != -1;
 		},
 		// 获取pagevisibilitychange事件回调
 		pageVisibilityChangeCallback : function(hideCallback, showCallback) {
@@ -3025,7 +3026,7 @@
 				mode : 'modal',
 				// 相应文件类型提示信息
 				tip : '使用不大于 600M的rmvb,rm,mkv,mp4,3gp,avi,mov,flv,wma,mpg,wmv文件',
-				fileNam : 'file',
+				fileName : 'file',
 				// 默认一次只能上传一个文件，为true时，填加多个input[type="input"]
 				multiple : false,
 				// 默认0.5秒更新一次上传速度
@@ -3069,11 +3070,11 @@
 				// 如果返回false，阻止保存
 				beforeSave : function() {
 					// 检测清晰度是否有勾选，默认checkbox的外部container是#definition-container'
-					var $checkboxs = $('#definition-container').find('input[type="checkbox"]:checked');
+					/*var $checkboxs = $('#definition-container').find('input[type="checkbox"]:checked');
 					if(!$checkboxs.length) {
 						ZUtil.error('请至少选择一个转码选择');
 						return false;
-					}
+					}*/
 				},
 				// 保存回调
 				saveCallback : $.noop
@@ -3084,7 +3085,8 @@
 			uploadUrl = option.uploadUrl,
 			saveButtonSelector = option.saveButtonSelector,
 			mode =option.mode,
-			acceptObj = Accept[option.type],
+			type = option.type,
+			acceptObj = Accept[type],
 			accept = acceptObj.text,
 			suffixs = acceptObj.suffixs,
 			tip = option.tip,
@@ -3118,7 +3120,7 @@
 							+ '<div class="z-upload-cell z-buttons" multiple="' + multiple + '">'
 								+ '<button type="button" class="btn btn-primary btn-sm z-select-button">'
 									+ '<span class="fa fa-cloud-upload"></span>'
-									+ '选择视频'
+									+ (type == 'video' ? '选择视频' : '上传文件')
 								+ '</button>'
 								+ '<button class="btn btn-primary btn-sm z-upload">'
 									+ '<span class="fa fa-cloud-upload"></span>'

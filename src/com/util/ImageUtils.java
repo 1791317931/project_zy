@@ -637,7 +637,7 @@ public class ImageUtils {
 	 * @return
 	 * @throws Exception
 	 */
-	public static Map<String, Object> uploadFile(MultipartFile file, 
+	public static Map<String, Object> uploadImage(MultipartFile file, 
 			String savePath, String basePath, String fileName, int fw, int fh) throws Exception {
 		
 		String srcPath = savePath + "src/";
@@ -730,6 +730,42 @@ public class ImageUtils {
 			fs.close();
 			inStream.close();
 		}
+	}
+	
+	/**
+	 * 上传文件
+	 * @param file
+	 * @param savePath
+	 * @param basePath
+	 * @param fileName
+	 * @return
+	 * @throws Exception
+	 */
+	public static Map<String, Object> uploadFile(MultipartFile file, 
+			String savePath, String fileName) throws Exception {
+		
+		String srcPath = savePath;
+		String type = getType(file);
+		
+		Map<String, Object> result = new HashMap<String, Object>();
+		
+		File directory = new File(srcPath);
+		// 如果目录不存在，创建目录
+		if(!directory.exists()) {
+			directory.mkdirs();
+		}
+		
+		String filePath = srcPath + fileName + "_src." + type;
+		File localFile = new File(filePath);
+		//比IO流的方式速度要快些
+		file.transferTo(localFile);
+		
+        result.put("type", type);
+        result.put("fullPath", filePath);
+        result.put("savePath", savePath);
+        result.put("fileName", fileName);
+		
+		return result;
 	}
 	
 }

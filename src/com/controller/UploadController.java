@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -37,10 +38,30 @@ public class UploadController {
 	private static String PNG = "89504e47";
 	private static String GIF = "47494638";
 	
+	private static Map<String, Object> invalidSuffixMap = new HashMap<String, Object>();
+	
 	private static Map<String, String> imageMap = new HashMap<String, String>();
 	private static Map<String, Map<String, Object>> fieldMaps = new HashMap<String, Map<String, Object>>();
 	
 	static {
+		invalidSuffixMap.put("js", null);
+		invalidSuffixMap.put("jsp", null);
+		invalidSuffixMap.put("exe", null);
+		invalidSuffixMap.put("com", null);
+		invalidSuffixMap.put("bat", null);
+		invalidSuffixMap.put("sh", null);
+		invalidSuffixMap.put("vbs", null);
+		invalidSuffixMap.put("cmd", null);
+		invalidSuffixMap.put("htm", null);
+		invalidSuffixMap.put("log", null);
+		invalidSuffixMap.put("reg", null);
+		invalidSuffixMap.put("lng", null);
+		invalidSuffixMap.put("ini", null);
+		invalidSuffixMap.put("bmp", null);
+		invalidSuffixMap.put("inf", null);
+		invalidSuffixMap.put("rtf", null);
+		invalidSuffixMap.put("dll", null);
+		
 		imageMap.put("jpg", JPG);
 		imageMap.put("jpeg", JPEG);
 		imageMap.put("bmp", BMP);
@@ -62,6 +83,18 @@ public class UploadController {
 	
 	public static String getFullPath(HttpServletRequest request, String filePath) {
 		return request.getServletContext().getRealPath("/") + filePath;
+	}
+	
+	// 获取文件类型
+	public static String getType(MultipartFile file) {
+		String fileName = file.getOriginalFilename();
+		String[] arr = fileName.split("\\.");
+		return arr[arr.length - 1].toLowerCase();
+	}
+	
+	public static String getFileName(MultipartFile file) {
+		String fileName = file.getOriginalFilename();
+		return fileName.substring(0, fileName.lastIndexOf("."));
 	}
 	
 	public static String[] getAccepts(String accept) {
@@ -103,6 +136,7 @@ public class UploadController {
 		return false;
 	}
 	
+	// --------------------------------------------image-----------------------------------------------------------
 	public static Map<String, Object> fileTypeIsValid(MultipartFile file,
 			@RequestParam(defaultValue = "image/jpg,image/jpeg,image/png", required = false) String accept) {
 		
@@ -223,7 +257,7 @@ public class UploadController {
 		// 校验文件类型是否合法
 		if (valid) {
 			// 1、首先上传图片
-			Map<String, Object> fileMap = ImageUtils.uploadFile(file, savePath, UPLOAD_PATH, fileName, fw, fh);
+			Map<String, Object> fileMap = ImageUtils.uploadImage(file, savePath, UPLOAD_PATH, fileName, fw, fh);
 			
 			// 2、校验已经上传图片是否合法：P过的图片保存为jpg格式时，默认的模式是CMYK模式（注意，这是给印刷机用的）。在图像-->模式中改为RGB模式才是显示器用的
 			boolean isRGB = ImageUtils.isRGB((String) fileMap.get("fullPath"));
@@ -353,6 +387,80 @@ public class UploadController {
 		
 		return map;
 	}
+	// --------------------------------------------image-----------------------------------------------------------
+	
+	// --------------------------------------------file------------------------------------------------------------
+	/**
+	 * 校验附件是否合法
+	 * @return
+	 */
+	public Map<String, Object> checkAttachmentType(MultipartFile file) {
+		return attachmentIsValid(file);
+	}
+	
+	/**
+	 * 防止可执行文件上传，只需要判断后缀即可
+	 * @param file
+	 * @return
+	 */
+	public static Map<String, Object> attachmentIsValid(MultipartFile file) {
+		
+		String type = getType(file);
+		Map<String, Object> result = new HashMap<String, Object>();
+		boolean success = true;
+		
+		if(invalidSuffixMap.containsKey(type)) {
+			result.put("msg", "文件类型不能是[ " + type + " ]格式");
+			success = false;
+		}
+		
+		result.put("success", success);
+		return result;
+	}
+	
+	/**
+	 * 上传纯粹的文件
+	 * @return
+	 */
+	@RequestMapping(value="/attachment/upload", method = RequestMethod.POST)	
+	@ResponseBody
+	public Map<String, Object> uploadFile(MultipartFile file, HttpServletRequest request,
+			@RequestParam(defaultValue = "upload/") String savePath) {
+
+		// --------------------------校验字段--------------------------
+		Map<String, Object> fieldMap = new HashMap<String, Object>();
+		fieldMap.put("savePath", savePath);
+		Map<String, Object> resultMap = validateFields(fieldMap);
+		
+		boolean success = (boolean) resultMap.get("success");
+		if(!success) {
+			return resultMap;
+		}
+		// --------------------------校验字段--------------------------
+		
+		// --------------------------校验文件格式，不能是可执行文件-----------------------
+		resultMap = attachmentIsValid(file);
+		if(!success) {
+			return resultMap;
+		}
+		// --------------------------校验文件格式，不能是可执行文件-----------------------
+		
+		String fullPath = getFullPath(request, savePath);
+		// _xxx   保存真实文件名称，为了后续回显
+		String fileName = UUID.randomUUID() + "_" + getFileName(file);
+		
+		// 上传文件
+		try {
+			resultMap = ImageUtils.uploadFile(file, fullPath, fileName);
+			resultMap.put("success", true);
+		} catch (Exception e) {
+			e.printStackTrace();
+			resultMap.put("success", false);
+			resultMap.put("msg", "服务器异常");
+		}
+		
+		return resultMap;
+	}
 	
 	@RequestMapping(value="/attachment/exist", method = RequestMethod.POST)
 	@ResponseBody
@@ -397,21 +505,24 @@ public class UploadController {
 		try {
 			filePath = URLDecoder.decode(filePath, "utf-8");
 			File file = new File(getFullPath(request, filePath));
-			writeStream(response, file, getRealName);
+			writeStream(response, request, file, getRealName);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
 	// 写文件流
-	public static void writeStream(HttpServletResponse response, File file, boolean getRealName) throws Exception {
+	public static void writeStream(HttpServletResponse response, HttpServletRequest request,
+			File file, boolean getRealName) throws Exception {
 		
 		String fullPath = file.getPath();
 		String fileName = file.getName();
 		
 		// 是否返回文件真实名称		如uuid_倪大豆头像.jpg，返回倪大豆头像.jpg
 		if(getRealName) {
-			fileName = fileName.substring(fileName.lastIndexOf("_") + 1);
+			String realName = fileName.substring(0, fileName.lastIndexOf("_src"));
+			String suffix = fileName.substring(fileName.lastIndexOf(".") + 1);
+			fileName = realName + "." + suffix;
 		}
 		
 		InputStream is = new BufferedInputStream(new FileInputStream(fullPath));
@@ -419,14 +530,29 @@ public class UploadController {
 		is.read(buffer);
 		is.close();
 		response.reset();
+		
+		String header = request.getHeader("User-Agent").toUpperCase();
+		if(isIE(header)) {
+			//IE下载文件名空格变+号问题
+			fileName = URLEncoder.encode(fileName, "utf-8").replace("+", "%20");
+		} else {
+			fileName = new String(fileName.replaceAll(" ", "").getBytes("utf-8"), "iso8859-1");
+		}
+		
 		// 先去掉文件名中的空格，转换为utf-8，保证不出现乱码
-		response.addHeader("Content-Disposition", "attachment;filename=" + new String(fileName.replaceAll(" ", "").getBytes("utf-8"), "iso8859-1"));
+		response.addHeader("Content-Disposition", "attachment;filename=\"" + fileName + "\"");
 		response.addHeader("Content-Length", "" + file.length());
 		OutputStream os = new BufferedOutputStream(response.getOutputStream());
 	    response.setContentType("application/octet-stream");
+	    
 	    os.write(buffer);// 输出文件
 	    os.flush();
 	    os.close();
 	}
+	
+	public static boolean isIE(String header) {
+		return header.contains("MSIE") || header.contains("TRIDENT") || header.contains("EDGE");
+	}
+	// --------------------------------------------file------------------------------------------------------------
 	
 }

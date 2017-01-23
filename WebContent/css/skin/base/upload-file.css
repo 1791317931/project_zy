@@ -1,3 +1,7 @@
+.z-upload-rows {
+	background: #fff;
+}
+
 .z-upload-container {
 	position: relative;
 }
@@ -27,6 +31,7 @@
 	color: #555;
 	height: 31px;
 	border: 1px solid #ccc;
+	border-right-width: 0;
 	position: relative;
 }
 .z-progress-bar:empty:before {

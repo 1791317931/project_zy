@@ -59,7 +59,25 @@ $(function() {
 		}
 	});
 	
-//	$('.edit-view-container').EditViewForProgrammer();
+	$('#downloadFile').bind('click', function() {
+		var url = 'upload/2ece5848-6ce8-44b2-a4bf-3720727fb2d3_唯美青春励志微电影《 路口 》_标清_src.flv';
+		$.ajax({
+			url : ctx + 'upload/attachment/exist',
+			data : {
+				filePath : url
+			},
+			type : 'post',
+			success : function(data) {
+				if(data.success) {
+					$('#file-path').val(url);
+					$('#downloadFile-Form')[0].submit();
+				} else {
+					ZUtil.error(data.msg);
+				}
+			},
+			error : $.fn.error
+		});
+	});
 	
 	// 水平滑动
 	$('li[data-type="horizontal-slide"]').one('click', function() {
@@ -227,13 +245,14 @@ $(function() {
 //	ZUtil.error();
 //	ZUtil.success();
 	
-	$uploadFile = $('#upload');
+	$uploadFile = $('.upload-file-container');
 	$uploadFile.UploadFile({
+		maxSize : 600,
 		multiple : true,
-		uploadUrl : ctx + 'uploadAction!upload.action'
-	});
-	$('#to-upload-file').bind('click', function() {
-		$uploadFile.trigger('show');
+		uploadUrl : ctx + 'upload/attachment/upload',
+		saveCallback : function(fileUploads) {
+			console.log(fileUploads);
+		}
 	});
 	
 	(function() {
@@ -244,5 +263,7 @@ $(function() {
 			$('.menu li').eq(0).click();
 		}
 	})();
+	
+	console.log(ZUtil.isIE());
 	
 });

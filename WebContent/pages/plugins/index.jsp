@@ -250,10 +250,6 @@
 		margin: 0 auto;
 		border: 1px solid red;
 	}
-	.upload-file {
-		width: 800px;
-		height: 500px;
-	}
 	.title {font-size: 18px;}
 	.result-container {width: 200px; height: 200px; border: 1px solid red;}
 </style>
@@ -277,6 +273,9 @@
 				</li>
 				<li data-type="clip-image">
 					Clip Image
+				</li>
+				<li data-type="download-file">
+					Download File
 				</li>
 				<li data-type="horizontal-slide">
 					Horizontal Slide
@@ -640,21 +639,55 @@
 				</div>
 			</div>
 			<div class="content-body-item" data-type="upload-file">
-				<div class="upload-file-container center">
-					<button class="btn btn-primary" id="to-upload-file">上传文件</button>
+				<div class="upload-file-container">
+					<div class="z-upload-container"></div>
+					<div class="center">
+						<button class="btn btn-primary ml10" id="saveFile">
+							<i class="align-top bigger-125"></i>保存
+						</button>
+					</div>
 				</div>
-				<div class="z-modal hide" id="upload">
-					<div class="z-modal-body upload-file p20">
-						<p class="center title">上传视频</p>
-						<div class="z-upload-container mt20"></div>
-						<div class="center mt20">
-							<button class="btn btn-primary" type="button" id="saveFile">
-								保存
-							</button>
-							<button class="btn btn-primary ml10" type="button" id="cancel-save">
-								取消
-							</button>
-						</div>
+				<div class="item-tip">
+					<div>
+						支持多文件上传，上传时带有进度条
+					</div>
+					<div>
+						每次只能同时上传一个文件
+					</div>
+					<div>
+						通过<span>type</span>参数来确定是上传文件还是视频
+					</div>
+					<div>
+						每个<span>.z-upload-row</span>中都有两个form，这样能避免用户上传文件的时候取消上传造成文件丢失
+					</div>
+					<div>
+						只需要一个<span>.z-upload-container</span>即可，点击保存按钮，有一个参数<span>fileUploads</span>，
+						该参数是一个数组，保存了<span>文件的完整路径、相对路径、文件名称</span>
+					</div>
+					<div>
+						通过调用<span>$container.trigger('reset')</span>重置插件
+					</div>
+					<div>
+						<span>$container.data('uploading')</span>获取插件是否正在上传文件
+					</div>
+				</div>
+			</div>
+			<div class="content-body-item" data-type="download-file">
+				文件名称：<span id="file-name">
+					2ece5848-6ce8-44b2-a4bf-3720727fb2d3_唯美青春励志微电影《 路口 》_标清.flv
+				</span>
+				<div class="center mt10">
+					<form class="hide" id="downloadFile-Form" action="<%=basePath%>upload/attachment/download">
+						<input type="text" name="filePath" id="file-path" />
+						<input type="text" name="getRealName" value="true" />
+					</form>
+					<button class="btn btn-primary" id="downloadFile">
+						<i class="align-top bigger-125"></i>下载
+					</button>
+				</div>
+				<div class="item-tip">
+					<div>
+						下载服务器中的文件时首先检测文件是否存在，如果存在再提交form表单数据到服务器，下载的中文名称在IE中也可以显示，<span>非乱码</span>
 					</div>
 				</div>
 			</div>
