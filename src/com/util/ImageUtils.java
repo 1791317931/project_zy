@@ -755,7 +755,7 @@ public class ImageUtils {
 			directory.mkdirs();
 		}
 		
-		String filePath = srcPath + fileName + "_src." + type;
+		String filePath = srcPath + fileName + "." + type;
 		File localFile = new File(filePath);
 		//比IO流的方式速度要快些
 		file.transferTo(localFile);

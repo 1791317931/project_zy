@@ -60,7 +60,7 @@ $(function() {
 	});
 	
 	$('#downloadFile').bind('click', function() {
-		var url = 'upload/2ece5848-6ce8-44b2-a4bf-3720727fb2d3_唯美青春励志微电影《 路口 》_标清_src.flv';
+		var url = 'upload/af86631b-4975-45d9-a789-df7e3dda012c_李准基-傻瓜的爱情.wma';
 		$.ajax({
 			url : ctx + 'upload/attachment/exist',
 			data : {

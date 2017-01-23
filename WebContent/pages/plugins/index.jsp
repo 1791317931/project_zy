@@ -674,7 +674,7 @@
 			</div>
 			<div class="content-body-item" data-type="download-file">
 				文件名称：<span id="file-name">
-					2ece5848-6ce8-44b2-a4bf-3720727fb2d3_唯美青春励志微电影《 路口 》_标清.flv
+					李准基-傻瓜的爱情.wma
 				</span>
 				<div class="center mt10">
 					<form class="hide" id="downloadFile-Form" action="<%=basePath%>upload/attachment/download">

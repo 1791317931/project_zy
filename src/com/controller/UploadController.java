@@ -520,9 +520,7 @@ public class UploadController {
 		
 		// 是否返回文件真实名称		如uuid_倪大豆头像.jpg，返回倪大豆头像.jpg
 		if(getRealName) {
-			String realName = fileName.substring(0, fileName.lastIndexOf("_src"));
-			String suffix = fileName.substring(fileName.lastIndexOf(".") + 1);
-			fileName = realName + "." + suffix;
+			fileName = fileName.substring(fileName.indexOf("_") + 1);
 		}
 		
 		InputStream is = new BufferedInputStream(new FileInputStream(fullPath));
