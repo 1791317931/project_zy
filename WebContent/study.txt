@@ -3299,3 +3299,13 @@ BMP(位图)也不能压缩裁剪
 页面嵌套iframe		IFRAME
 history.back()会先回退iframe的地址
 解决方案：在上一个页面A中告诉当前页面A的路径，当前页面location.href=A的路径
+
+2017-2-9	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+js跨域的两种方式
+1、jsonp
+利用<script>的src可以跨域
+js请求服务器，并且传递需要回调的方法名，服务器返回html片段，页面将片段写到<script>中即可执行回调
+
+2、ajax跨域
+response.setHeader("Access-Control-Allow-Origin","*");   
+response.setHeader("Access-Control-Allow-Methods","GET,POST");
