@@ -3307,5 +3307,4 @@ js跨域的两种方式
 js请求服务器，并且传递需要回调的方法名，服务器返回html片段，页面将片段写到<script>中即可执行回调
 
 2、ajax跨域
-response.setHeader("Access-Control-Allow-Origin","*");   
-response.setHeader("Access-Control-Allow-Methods","GET,POST");
+在页面中载入一个iframe，该iframe的src是另一个域，并且在该iframe中获取该域的数据，就能实现跨域
