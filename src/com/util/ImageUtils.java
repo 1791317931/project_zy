@@ -9,6 +9,8 @@ import java.awt.RenderingHints;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -764,6 +766,120 @@ public class ImageUtils {
         result.put("fullPath", filePath);
         result.put("savePath", savePath);
         result.put("fileName", fileName);
+		
+		return result;
+	}
+	
+	/**
+	 * 分片上传文件，如果已经是最后一片，需要组装文件，并且删除分片
+	 * @param file
+	 * @param savePath
+	 * @param uniqueFlag
+	 * @param fileName
+	 * @param totalIndex
+	 * @param index
+	 * @param type
+	 * @return
+	 * @throws Exception
+	 */
+	public static Map<String, Object> uploadFile(MultipartFile file, 
+			String savePath, String uniqueFlag, String fileName, Integer totalIndex,
+			Integer index, String type) throws Exception {
+		
+		String srcPath = savePath;
+		
+		Map<String, Object> result = new HashMap<String, Object>();
+		
+		File directory = new File(srcPath);
+		// 如果目录不存在，创建目录
+		if(!directory.exists()) {
+			directory.mkdirs();
+		}
+		
+		// D://image/189839489348_倪大豆视频_1.mp4
+		String filePath = srcPath + uniqueFlag + "_" + fileName + "_" + index + "." + type;
+		File localFile = new File(filePath);
+		//比IO流的方式速度要快些
+		file.transferTo(localFile);
+		
+		result.put("type", type);
+		result.put("savePath", savePath);
+		
+		if(index.intValue() == totalIndex.intValue()) {
+			result = mergeFile(savePath, uniqueFlag, fileName, type, totalIndex, result);
+		} else {
+			result.put("fullPath", filePath);
+			result.put("fileName", fileName);
+			result.put("success", true);
+		}
+		
+		return result;
+	}
+	
+	public static Map<String, Object> mergeFile(String fullPath, String uniqueFlag, String fileName,
+			String type, Integer totalIndex, Map<String, Object> result) throws Exception {
+		
+		boolean success = true;
+		
+		File directory = new File(fullPath);
+		// 如果目录不存在，创建目录
+		if(!directory.exists()) {
+			directory.mkdirs();
+		}
+		
+		String path = fullPath + uniqueFlag + "_" + fileName;
+		File srcFile = null;
+		// 最终合并的文件
+		File finalFile = new File(path + "." + type);
+		OutputStream os = null;
+		BufferedOutputStream bos = null;
+		InputStream is = null;
+		BufferedInputStream bis = null;
+		byte[] bytes = new byte[1024 * 1024];
+
+		try {
+			os = new FileOutputStream(finalFile);
+			bos = new BufferedOutputStream(os);
+			
+			for(int index = 1; index <= totalIndex; index++) {
+				srcFile = new File(path + "_" + index + "." + type);
+				// 如果文件不存在，中断循环，返回false
+				if(!srcFile.exists()) {
+					success = false;
+					break;
+				} else {
+					// 读文件
+					is = new FileInputStream(srcFile);
+					bis = new BufferedInputStream(is);
+					int length = -1;
+					while(-1 != (length = bis.read(bytes))) {
+						bos.write(bytes, 0, length);
+					}
+					bis.close();
+					is.close();
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if(bos != null) {
+					bos.close();
+				}
+				if(os != null) {
+					os.close();
+				}
+			} catch (Exception e2) {
+				e2.printStackTrace();
+			}
+		}
+		
+		result.put("success", success);
+		result.put("end", true);
+		if(success) {
+			result.put("fullPath", path + "." + type);
+			result.put("fileName", fileName);
+		}
 		
 		return result;
 	}

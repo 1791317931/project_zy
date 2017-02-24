@@ -3003,6 +3003,8 @@
 		 * 新增特性：
 		 * 2016-12-8
 		 * 1、$container.data('uploading')	将组建上传状态暴露给外部
+		 * 2017-2-24
+		 * 2、文件分片上传
 		 */
 		UploadFile : function(opt) {
 			var $container = this,
@@ -3025,6 +3027,10 @@
 				type : 'video',
 				// normal、modal
 				mode : 'modal',
+				// 是否允许分片上传
+				manyTimes : true,
+				// 分片上传时，每次上传10M
+				perSize : 10,
 				// 相应文件类型提示信息
 				tip : '使用不大于 600M的rmvb,rm,mkv,mp4,3gp,avi,mov,flv,wma,mpg,wmv文件',
 				fileName : 'file',
@@ -3086,6 +3092,8 @@
 			uploadUrl = option.uploadUrl,
 			saveButtonSelector = option.saveButtonSelector,
 			mode =option.mode,
+			perSize = option.perSize * 1024 * 1024,
+			manyTimes = option.manyTimes,
 			type = option.type,
 			acceptObj = Accept[type],
 			accept = acceptObj.text,
@@ -3430,33 +3438,12 @@
 					$speed = $row.find('.z-upload-speed'),
 					$progressLinear = $row.find('.z-upload-progress-linear');
 					
-					formData.append(fileName, file);
+					formData.append('uniqueFlag', Date.now());
+					formData.append('fileName', file.name);
 					
 					xhr.addEventListener('error', uploadError, false);
-					// 必须使用异步（true），才能监控progress
-					xhr.open('post', uploadUrl, true);
-					xhr.onreadystatechange = function(e) {
-						var readyState = xhr.readyState,
-						status = xhr.status;
-						
-						if(readyState == 4 && status == 200) {
-							var response = e.target.response;
-							response = response && JSON.parse(response);
-							
-							// success可能会变动
-							if(response.success) {
-								afterUpload($row, $upload, response);
-								!multiple && save($row);
-							}
-						}
-						
-						if(status >= 500) {
-							afterUpload($row, $upload);
-							uploadError();
-						}
-					};
-					
 					xhr.upload.addEventListener('progress', function(e) {
+						// 不管分几次上传，只要是同一个xhr，e.loaded就会继续增加
 						var loaded = e.loaded,
 				    	// 当前时间戳
 				    	now = new Date().getTime(),
@@ -3479,7 +3466,67 @@
 						}
 					}, false);
 					
-					xhr.send(formData);
+					xhr.onreadystatechange = function(e) {
+						var readyState = xhr.readyState,
+						status = xhr.status;
+						
+						if(readyState == 4 && status == 200) {
+							var response = e.target.response;
+							response = response && JSON.parse(response);
+							
+							// success可能会变动
+							if(response.success) {
+								if(manyTimes) {
+									if(index < totalIndex) {
+										start = end;
+										// 继续发送分片文件
+										send();
+									} else {
+										afterUpload($row, $upload, response);
+										!multiple && save($row);
+									}
+								} else {
+									afterUpload($row, $upload, response);
+									!multiple && save($row);
+								}
+							}
+						}
+						
+						if(status >= 500) {
+							afterUpload($row, $upload);
+							uploadError();
+						}
+					};
+					
+					// 是否分片上传
+					if(manyTimes) {
+						// 每次上传1M
+						var totalIndex = Math.ceil(size / perSize),
+						start = 0,
+						end = 0,
+						index = 0;
+						formData.append('totalIndex', totalIndex);
+						send();
+					} else {
+						xhr.open('post', uploadUrl, true);
+						formData.append(fileName, file);
+						xhr.send(formData);
+					}
+					
+					function send() {
+						// 必须使用异步（true），才能监控progress
+						xhr.open('post', uploadUrl, true);
+						if(size - start < perSize) {
+							end = size;
+						} else {
+							end = perSize + start;
+						}
+						
+						formData['delete']('index');
+						formData.append('index', ++index);
+						formData.append(fileName, file.slice(start, end));
+						xhr.send(formData);
+					}
 				}
 			}
 		}

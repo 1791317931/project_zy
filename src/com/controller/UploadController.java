@@ -92,8 +92,17 @@ public class UploadController {
 		return arr[arr.length - 1].toLowerCase();
 	}
 	
+	public static String getType(String fileName) {
+		String[] arr = fileName.split("\\.");
+		return arr[arr.length - 1].toLowerCase();
+	}
+	
 	public static String getFileName(MultipartFile file) {
 		String fileName = file.getOriginalFilename();
+		return fileName.substring(0, fileName.lastIndexOf("."));
+	}
+	
+	public static String getFileName(String fileName) {
 		return fileName.substring(0, fileName.lastIndexOf("."));
 	}
 	
@@ -461,6 +470,80 @@ public class UploadController {
 		
 		return resultMap;
 	}
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * 上传纯粹的文件，分割文件上传
+	 * @param fileName	因为是分割文件上传，formData上传的Blob没有真实的文件名，所以需要单独上传文件名
+	 * @param index			当前上传的文件序号，方便组装文件
+	 * @param totalIndex	文件分割片数
+	 * @param uniqueFlag	唯一标识符
+	 * @return
+	 */
+	@RequestMapping(value="/attachment/upload/split", method = RequestMethod.POST)	
+	@ResponseBody
+	public Map<String, Object> uploadFileSplit(MultipartFile file, HttpServletRequest request,
+			@RequestParam(defaultValue = "upload/") String savePath,
+			String fileName, Integer index, Integer totalIndex, String uniqueFlag) {
+
+		// --------------------------校验字段--------------------------
+		Map<String, Object> fieldMap = new HashMap<String, Object>();
+		fieldMap.put("savePath", savePath);
+		Map<String, Object> resultMap = validateFields(fieldMap);
+		
+		boolean success = (boolean) resultMap.get("success");
+		if(!success) {
+			return resultMap;
+		}
+		// --------------------------校验字段--------------------------
+		
+		// --------------------------校验文件格式，不能是可执行文件-----------------------
+		resultMap = attachmentIsValid(file);
+		if(!success) {
+			return resultMap;
+		}
+		// --------------------------校验文件格式，不能是可执行文件-----------------------
+		
+		String fullPath = getFullPath(request, savePath);
+		String type = getType(fileName);
+		// {uniqueFlag}_{真实文件名}_{index}   保存真实文件名称，为了后续回显
+		fileName = getFileName(fileName);
+		
+		// 上传文件
+		try {
+			resultMap = ImageUtils.uploadFile(file, fullPath, uniqueFlag, fileName, totalIndex, index, type);
+		} catch (Exception e) {
+			e.printStackTrace();
+			resultMap.put("success", false);
+			resultMap.put("msg", "服务器异常");
+		}
+		
+		return resultMap;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	@RequestMapping(value="/attachment/exist", method = RequestMethod.POST)
 	@ResponseBody

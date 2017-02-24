@@ -249,7 +249,9 @@ $(function() {
 	$uploadFile.UploadFile({
 		maxSize : 600,
 		multiple : true,
-		uploadUrl : ctx + 'upload/attachment/upload',
+		perSize : 1,
+//		uploadUrl : ctx + 'upload/attachment/upload',
+		uploadUrl : ctx + 'upload/attachment/upload/split',
 		saveCallback : function(fileUploads) {
 			console.log(fileUploads);
 		}
