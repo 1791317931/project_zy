@@ -119,7 +119,7 @@
 		$scrollObj = !option.self && $(window) || $this;
 		// 为了解决ace带来的bug，必须判断添加滚动加载事件的dom元素是否存在，并且带有滚动加载的标志参数
 		$this.attr('scroll-flag', true);
-		$scrollObj.unbind('mousewheel').bind('mousewheel', function(e) {
+		$scrollObj.unbind('mousewheel DOMMouseScroll').bind('mousewheel DOMMouseScroll', function(e) {
 			function getData() {
 				if(typeof beforeScroll == 'function' && beforeScroll() == false) {
 					return false;
@@ -129,7 +129,7 @@
 				if($scrollOriginDom && $scrollOriginDom.length && $scrollOriginDom.attr('scroll-flag')) {
 					var curTime = new Date().getTime(),
 					isReady = $this.isReady;
-					if(e.originalEvent.wheelDelta < 0
+					if((e.originalEvent.wheelDelta || !e.originalEvent.detail) < 0
 							&& isBottom()
 							&& isReady
 							&& curTime - $this.preTime >= option.interval
