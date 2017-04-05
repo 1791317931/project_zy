@@ -1683,10 +1683,12 @@
 						$sliderContainer = $item.find('.horizontal-slider-' + v);
 						var $modal = $sliderContainer.closest('.z-modal'),
 						$header = $sliderContainer.find('.slider-header'),
+						headerHeight = $header.css('display') == 'none' ? 0 : $header.height(),
 						$sliderBody = $sliderContainer.find('.slider-body'),
 						$sliderContent = $sliderBody.find('.slider-content'),
 						$sliderItems = $sliderBody.find('.slider-item'),
 						$footer = $sliderContainer.find('.slider-footer'),
+						footerHeight = $footer.css('display') == 'none' ? 0 : $footer.height(),
 						$footerItems,
 						$close = $sliderContainer.find('.slider-close'),
 						$triangleLeft = $sliderContainer.find('.triangle-left'),
@@ -1697,7 +1699,7 @@
 						}
 						
 						$sliderBody.css({
-							height : $sliderContainer.height() - $header.height() - $footer.height()
+							height : $sliderContainer.height() - headerHeight - footerHeight
 						});
 						$sliderContent.css({
 							width : width * $sliderItems.length

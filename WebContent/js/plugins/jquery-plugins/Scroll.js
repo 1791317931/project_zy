@@ -27,23 +27,23 @@
 (function() {
 	function Scroll(opt) {
 		var option = {
-				// 数据加载间隔时间(ms)
-				interval : 1000,
-				// 距离底部50px时加载
-				offsetBottom : 50,
-				// !!!!!!!!!默认使用window作为滚动监听对象,为true时，使用自身作为滚动监听对象，此时需要设置css{min-height以及overflow-y: auto};
-				self : false,
-				url : '',
-				type : 'post',
-				data : {
-					pageSize : 10,
-					curPage : 1
-				},
-				beforeSend : beforeSend,
-				complete : complete,
-				beforeScroll : $.noop,
-				success : success,
-				error : $.fn.error
+			// 数据加载间隔时间(ms)
+			interval : 1000,
+			// 距离底部50px时加载
+			offsetBottom : 50,
+			// !!!!!!!!!默认使用window作为滚动监听对象,为true时，使用自身作为滚动监听对象，此时需要设置css{min-height以及overflow-y: auto};
+			self : false,
+			url : '',
+			type : 'js',
+			data : {
+				pageSize : 10,
+				curPage : 1
+			},
+			beforeSend : beforeSend,
+			complete : complete,
+			beforeScroll : $.noop,
+			success : success,
+			error : $.fn.error
 		};
 		var $this = this, callback = opt.success;
 		opt.success = option.success;
