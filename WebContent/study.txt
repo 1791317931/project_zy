@@ -2457,7 +2457,7 @@ https://developer.mozilla.org/en-US/docs/Web
 
 2016-9-8	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 校验js  getBoundingClientRect在ie和其他浏览器差别
-ie10以上，和chrome没有差别，都可以正常获取6个参数，并且不是以2pxX2px为起始点
+ie10和chrome没有差别，都可以正常获取6个参数，并且不是以2pxX2px为起始点
 高版本ie已经没有区别，并且获取的width和height都包括border和padding的像素！！！！！！！！！！！！！！
 而jquery获取width和height都不包括border和padding的像素！！！！！！！！！！！！！！
 1、如果浏览器缩放，获取right、left是距离dom到浏览器可视边界的距离，而不是实际距离，同理，top和bottom也是如此
