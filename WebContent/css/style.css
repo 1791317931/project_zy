@@ -502,10 +502,13 @@
 	height: 290px;
 	margin-left: 3px;
 	perspective: 1000px;
+	border: 1px solid transparent;
+	box-sizing: border-box;
+	transition: border-color .2s linear;
 }
 
 #perspective-test img:hover {
 	/* transform: tranlateZ(1000px); */
-	border: 1px solid red;
+	border-color: red;
 	perspective: 0px;
 }
