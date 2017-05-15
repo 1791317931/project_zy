@@ -40,7 +40,7 @@
 				<span></span>
 				<span>value3</span>
 			</label>
-			<label class="radio">
+			<label class="radio" id="value4">
 				<input type="radio" id="value4" name="sex"/>
 				<span></span>
 				<span>value4</span>
