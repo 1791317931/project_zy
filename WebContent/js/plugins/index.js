@@ -3007,14 +3007,14 @@
 		},
 		/**
 		 * demo:
-		 * <div class="upload">
+		 * <div id="upload">
 		 * 		<div class="z-upload-container"></div>
 		 * </div>
 		 * <button class="saveUpload">
 		 * 		上传
 		 * </button>
 		 * 
-		 * $('upload').UploadFile({
+		 * $('#upload').UploadFile({
 		 * 		
 		 * });
 		 * 
