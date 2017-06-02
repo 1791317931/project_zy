@@ -2,6 +2,8 @@
 	window.base_img = '/sharedisk/img/';
 	window.base_file = '/sharedisk/file/';
 	
+	base_url = window.base_url || '';
+	
 	var ZUtil = {
 		v : '0.0.3',
 		/**
