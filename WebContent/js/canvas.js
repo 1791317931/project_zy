@@ -56,7 +56,7 @@
 		// ----------------动画做圆-------------------------
 		// chrome version:46  bug
 		canvas.globalCompositeOperation = 'source-atop';
-//		canvas.globalCompositeOperation = 'multiply';
+		// canvas.globalCompositeOperation = 'multiply';
 		canvas.beginPath();
 		canvas.strokeStyle = option.strokeStyle;
 		setTimeout(function() {
